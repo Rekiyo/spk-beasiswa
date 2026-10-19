@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('kriterias', function (Blueprint $table) {
-        $table->enum('tipe_input', ['angka', 'pilihan'])->default('angka')->after('atribut');
+            $table->enum('tipe_input', ['angka', 'pilihan'])->default('angka')->after('atribut');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('kriterias', function (Blueprint $table) {
-        $table->dropColumn('tipe_input');
+            $table->dropColumn('tipe_input');
         });
     }
 };

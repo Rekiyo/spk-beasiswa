@@ -9,18 +9,18 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
-{
-    Schema::create('sub_kriterias', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('kriteria_id')->constrained('kriterias')->cascadeOnDelete();
-        $table->string('label');
-        $table->unsignedSmallInteger('nilai');
-        $table->timestamps();
+    public function up(): void
+    {
+        Schema::create('sub_kriterias', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('kriteria_id')->constrained('kriterias')->cascadeOnDelete();
+            $table->string('label');
+            $table->unsignedSmallInteger('nilai');
+            $table->timestamps();
 
-        $table->unique(['kriteria_id', 'label']);
-    });
-}
+            $table->unique(['kriteria_id', 'label']);
+        });
+    }
 
     /**
      * Reverse the migrations.
