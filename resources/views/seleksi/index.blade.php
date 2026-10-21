@@ -312,7 +312,7 @@
                 <div>
                     <h2 style="font-size:15px; font-weight:800; color:#111827; margin:0 0 4px 0;">Hasil Rekapitulasi Perangkingan SAW</h2>
                     <p style="font-size:12px; color:#6b7280; margin:0;">
-                        Urutan preferensi siswa berdasarkan normalisasi matriks $R \times$ Bobot AHP $W$. Batas alokasi kuota: <strong>{{ $periode->kuota }} Siswa Lolos Penerima</strong>.
+                        Urutan preferensi siswa berdasarkan normalisasi matriks $R \times$ Bobot AHP $W$. Batas kuota: <strong>{{ $periode->kuota }} Siswa Penerima</strong>@if($periode->cutoff_kuota !== null) &bull; Cutoff Kuota Utama (Rank {{ min($totalLolos, $periode->kuota) }}): <strong>V &ge; {{ number_format($periode->cutoff_kuota, 3) }}</strong>@endif.
                     </p>
                 </div>
 
@@ -421,7 +421,7 @@
 
                             {{-- SKOR Vi --}}
                             <td style="text-align:center;">
-                                <span class="score-value {{ $rank > $periode->kuota ? 'score-below' : '' }}">
+                                <span class="score-value {{ $status !== 'lolos' ? 'score-below' : '' }}">
                                     {{ number_format(floatval($c->skor_saw ?? 0), 3) }}
                                 </span>
                             </td>
@@ -430,7 +430,7 @@
                             <td style="text-align:center;">
                                 @if ($status === 'lolos')
                                     @if ($rank == $periode->kuota)
-                                        <span class="status-pill-cadangan" title="Batas Kuota Penerima">
+                                        <span class="status-pill-lolos" title="Batas Kuota Penerima" style="background:#d1fae5; border-color:#6ee7b7;">
                                             ✓ Lolos (Batas Kuota)
                                         </span>
                                     @else

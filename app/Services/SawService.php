@@ -103,20 +103,72 @@ class SawService
             $scores[$c->id] = round($preferenceVi, 4);
         }
 
-        // 5. Urutkan berdasarkan Skor V_i Descending
-        arsort($scores);
+        // 5. Urutkan berdasarkan Skor V_i Descending dengan aturan Tie-Breaker yang konsisten:
+        // Prioritas 1: Skor preferensi Vi tertinggi
+        // Prioritas 2 (Tie-breaker 1): Nilai Akademik C1 tertinggi (kriteria benefit utama SMK)
+        // Prioritas 3 (Tie-breaker 2): Nilai Penghasilan Orang Tua C2 terendah (kebutuhan ekonomi prioritas)
+        // Prioritas 4 (Tie-breaker 3): Tingkat Ketidakhadiran C5 terendah (kedisiplinan siswa)
+        // Prioritas 5 (Tie-breaker 4): Pendaftaran lebih awal (ID calon penerima lebih kecil)
+        $kriteriaByKode = $kriterias->keyBy('kode');
+        $c1Id = $kriteriaByKode->get('C1')?->id;
+        $c2Id = $kriteriaByKode->get('C2')?->id;
+        $c5Id = $kriteriaByKode->get('C5')?->id;
 
-        // 6. Tentukan Ranking & Status Kelulusan
+        $calonSorted = $calonList->sort(function ($a, $b) use ($scores, $matrixX, $c1Id, $c2Id, $c5Id) {
+            $skorA = $scores[$a->id] ?? 0.0;
+            $skorB = $scores[$b->id] ?? 0.0;
+
+            if (abs($skorB - $skorA) > 0.00001) {
+                return $skorB <=> $skorA;
+            }
+
+            if ($c1Id !== null) {
+                $c1A = floatval($matrixX[$a->id][$c1Id] ?? 0);
+                $c1B = floatval($matrixX[$b->id][$c1Id] ?? 0);
+                if (abs($c1B - $c1A) > 0.00001) {
+                    return $c1B <=> $c1A;
+                }
+            }
+
+            if ($c2Id !== null) {
+                $c2A = floatval($matrixX[$a->id][$c2Id] ?? 0);
+                $c2B = floatval($matrixX[$b->id][$c2Id] ?? 0);
+                if (abs($c2A - $c2B) > 0.00001) {
+                    return $c2A <=> $c2B;
+                }
+            }
+
+            if ($c5Id !== null) {
+                $c5A = floatval($matrixX[$a->id][$c5Id] ?? 0);
+                $c5B = floatval($matrixX[$b->id][$c5Id] ?? 0);
+                if (abs($c5A - $c5B) > 0.00001) {
+                    return $c5A <=> $c5B;
+                }
+            }
+
+            return $a->id <=> $b->id;
+        })->values();
+
+        // 6. Tentukan Ranking & Status Kelulusan Berdasarkan Kuota Utama & Cadangan:
+        // - Lolos: Siswa peringkat 1 sampai kuota penerima
+        // - Cadangan: Siswa di luar kuota utama tetapi masih masuk batas cadangan (sama dengan kuota penerima: kuota + 1 s/d kuota * 2)
+        // - Tidak Lolos: Siswa di luar kuota dan batas cadangan
         $kuota = max(1, intval($periode->kuota));
-        $cadanganLimit = $kuota + min(10, max(3, $kuota));
+        $cadanganLimit = $kuota * 2; // Alokasi cadangan sama dengan kuota penerima
 
         $rankings = [];
         $rank = 1;
+        $cutoffKuota = null;
 
-        DB::transaction(function () use ($scores, $kuota, $cadanganLimit, &$rankings, &$rank) {
-            foreach ($scores as $calonId => $skorVi) {
+        DB::transaction(function () use ($calonSorted, $scores, $kuota, $cadanganLimit, &$rankings, &$rank, &$cutoffKuota) {
+            foreach ($calonSorted as $calon) {
+                $calonId = $calon->id;
+                $skorVi = $scores[$calonId] ?? 0.0;
+
                 if ($rank <= $kuota) {
                     $status = 'lolos';
+                    // Cutoff visual kuota adalah skor siswa peringkat terakhir dalam kuota
+                    $cutoffKuota = $skorVi;
                 } elseif ($rank <= $cadanganLimit) {
                     $status = 'cadangan';
                 } else {
@@ -152,6 +204,7 @@ class SawService
             'matrix_r' => $matrixR,
             'weights' => $weights,
             'min_max' => $minMax,
+            'cutoff_kuota' => $cutoffKuota,
         ];
     }
 }

@@ -66,7 +66,7 @@
                 </span>
             </div>
             <div class="periode-stat-number">
-                <strong>{{ $totalPendaftarAktif ?: 15 }}</strong>
+                <strong>{{ $totalPendaftarAktif }}</strong>
                 <span>Siswa</span>
             </div>
             <div class="periode-stat-card__footer">
@@ -84,7 +84,7 @@
                 </span>
             </div>
             <div class="periode-stat-number">
-                <strong>{{ $periodeAktif ? $periodeAktif->kuota : 5 }}</strong>
+                <strong>{{ $periodeAktif ? $periodeAktif->kuota : 0 }}</strong>
                 <span>Siswa Penerima</span>
             </div>
             <div class="periode-stat-card__footer">
@@ -102,7 +102,7 @@
                 </span>
             </div>
             <div class="periode-stat-number">
-                <strong>{{ $totalPeriode ?: 6 }}</strong>
+                <strong>{{ $totalPeriode }}</strong>
                 <span>Siklus Beasiswa</span>
             </div>
             <div class="periode-stat-card__footer">
@@ -133,7 +133,7 @@
 
                 <h2 style="font-size:20px; font-weight:800; color:#111827; margin:14px 0 6px;">{{ $periodeAktif->nama }}</h2>
                 <p style="font-size:13px; color:#6b7280; margin:0 0 18px;">
-                    Siklus seleksi beasiswa mahasiswa berprestasi reguler tahap I dengan ambang batas kelulusan preferensi V ≥ 0.800.
+                    Siklus seleksi beasiswa siswa berprestasi SMK dengan kuota penerima {{ $periodeAktif->kuota }} siswa{{ $periodeAktif->cutoff_kuota ? ' dan cutoff kuota V ≥ ' . number_format($periodeAktif->cutoff_kuota, 3) : '' }}.
                 </p>
 
                 <div class="periode-active-info" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; background:#f9fafb; padding:16px; border-radius:12px; border:1px solid #e5e7eb;">
@@ -143,23 +143,23 @@
                             RENTANG PENDAFTARAN
                         </span>
                         <strong class="info-value" style="display:block; font-size:13px; color:#111827; margin:4px 0 2px;">
-                            {{ $periodeAktif->tanggal_mulai->format('d M') }} – {{ $periodeAktif->deadline->format('d M Y') }}
+                            {{ $periodeAktif->tanggal_mulai ? $periodeAktif->tanggal_mulai->format('d M') : '-' }} – {{ $periodeAktif->deadline ? $periodeAktif->deadline->format('d M Y') : '-' }}
                         </strong>
                         <span class="info-sub" style="font-size:10px; color:#e11d48; font-weight:600;">
-                            18 Hari Tersisa (Durasi 90 Hari)
+                            {{ $periodeAktif->sisa_waktu_text }}
                         </span>
                     </div>
 
                     <div class="info-item">
                         <span class="info-label" style="display:flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase;">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/></svg>
-                            KUOTA DITETAPKAN
+                            KUOTA BEASISWA
                         </span>
                         <strong class="info-value" style="display:block; font-size:13px; color:#111827; margin:4px 0 2px;">
-                            {{ $periodeAktif->kuota }} Kursi Penerima
+                            {{ $periodeAktif->kuota }} Siswa Penerima
                         </strong>
                         <span class="info-sub" style="font-size:10px; color:#6b7280;">
-                            Alokasi DIPA Universitas
+                            Alokasi Kuota Beasiswa Sekolah
                         </span>
                     </div>
 
@@ -169,23 +169,23 @@
                             PENDAFTAR MASUK
                         </span>
                         <strong class="info-value" style="display:block; font-size:13px; color:#111827; margin:4px 0 2px;">
-                            {{ $periodeAktif->calonPenerimas->count() ?: 128 }} Berkas Mahasiswa
+                            {{ $periodeAktif->ringkasan_pendaftar_text }}
                         </strong>
-                        <span class="info-sub" style="font-size:10px; color:#6b7280;">
-                            104 Valid (81.2%) • 24 Menunggu
+                        <span class="info-sub" style="font-size:10px; color:#4b5563; font-weight:600;">
+                            {{ $periodeAktif->ringkasan_target_text }}
                         </span>
                     </div>
 
                     <div class="info-item">
                         <span class="info-label" style="display:flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase;">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
-                            STATUS MESIN SAW
+                            STATUS PERHITUNGAN SAW
                         </span>
                         <strong class="info-value" style="display:block; font-size:13px; color:#111827; margin:4px 0 2px;">
-                            Matriks Siap Dihitung
+                            {{ $periodeAktif->status_saw_info['status'] }}
                         </strong>
-                        <span class="info-sub" style="font-size:10px; color:#059669; font-weight:600;">
-                            Bobot W1-W5 Terkunci (100%)
+                        <span class="info-sub" style="font-size:10px; color:{{ $periodeAktif->status_saw_info['is_ready'] ? '#059669' : '#d97706' }}; font-weight:600;">
+                            {{ $periodeAktif->status_saw_info['sub'] }}
                         </span>
                     </div>
                 </div>
@@ -226,7 +226,7 @@
         <div class="history-header">
             <div>
                 <h2>Daftar Riwayat Periode Seleksi</h2>
-                <p>Seluruh catatan pelaksanaan seleksi beasiswa mahasiswa berprestasi terdahulu.</p>
+                <p>Seluruh catatan pelaksanaan seleksi beasiswa siswa berprestasi terdahulu.</p>
             </div>
         </div>
         
@@ -303,19 +303,25 @@
                             </div>
                         </td>
                         <td>
-                            <strong style="color:#be185d; font-size:13px;">{{ $p->kuota }} Kursi</strong>
+                            <strong style="color:#be185d; font-size:13px;">{{ $p->kuota }} Siswa</strong>
                         </td>
                         <td>
-                            <?php $cnt = $p->calonPenerimas->count(); ?>
+                            @php $cnt = $p->calonPenerimas->count(); @endphp
                             <div>
-                                <strong style="color:#111827; font-size:12px;">{{ $cnt ?: ($p->id == $periodeAktif?->id ? 128 : 100) }} Mhs</strong>
-                                <span style="display:block; font-size:10px; color:#64748b;">100% Selesai</span>
+                                <strong style="color:#111827; font-size:12px;">{{ $cnt }} Siswa</strong>
+                                <span style="display:block; font-size:10px; color:#64748b;">
+                                    @if ($p->total_siswa > 0)
+                                        {{ $p->persentase_pendaftaran }}% dari Target
+                                    @else
+                                        Target Belum Ditetapkan
+                                    @endif
+                                </span>
                             </div>
                         </td>
                         <td>
                             @if ($p->isTerkunci() || $p->is_final)
                                 <span class="result-pill result-pill--done" style="background:#ecfdf5; color:#047857; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700;">
-                                    ✓ {{ $p->kuota }} Mhs Ditetapkan
+                                    ✓ {{ $p->kuota }} Siswa Ditetapkan
                                 </span>
                             @else
                                 <span class="result-pill result-pill--progress" style="background:#fdf2f8; color:#be185d; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700;">

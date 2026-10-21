@@ -73,6 +73,8 @@ class AhpService
         }
 
         // 3. Normalisasi matriks & hitung Eigen Vektor (Priority Weights W_i)
+        // Metode Referensi: Membagi setiap elemen dengan total kolomnya,
+        // lalu menghitung rata-rata setiap baris dengan presisi penuh
         $normalized = [];
         $weights = [];
         foreach ($kriteriaKeys as $i) {
@@ -83,31 +85,23 @@ class AhpService
                 $normalized[$i][$j] = $normVal;
                 $rowSum += $normVal;
             }
-            $weights[$i] = round($rowSum / $n, 5);
+            $weights[$i] = $rowSum / $n;
         }
 
-        // Pastikan normalisasi total bobot = 1.000
+        // Pastikan normalisasi total bobot = 1.000 dengan presisi penuh
         $sumWeights = array_sum($weights);
-        if ($sumWeights > 0 && abs($sumWeights - 1.0) > 0.0001) {
+        if ($sumWeights > 0 && abs($sumWeights - 1.0) > 1e-9) {
             foreach ($weights as $k => $w) {
-                $weights[$k] = round($w / $sumWeights, 5);
+                $weights[$k] = $w / $sumWeights;
             }
         }
 
-        // 4. Hitung Lambda Max (Principal Eigenvalue)
-        // WSV (Weighted Sum Vector): v_i = sum_j (A[i][j] * W[j])
-        // lambda_i = v_i / W[i]
-        // lambda_max = average(lambda_i)
-        $lambdaList = [];
-        foreach ($kriteriaKeys as $i) {
-            $wsv = 0.0;
-            foreach ($kriteriaKeys as $j) {
-                $wsv += $fullMatrix[$i][$j] * $weights[$j];
-            }
-            $wi = $weights[$i] > 0 ? $weights[$i] : 0.00001;
-            $lambdaList[] = $wsv / $wi;
+        // 4. Hitung Lambda Max (Principal Eigenvalue) sesuai metode referensi:
+        // λmax = Σ (total kolom matriks perbandingan × bobot prioritas kolom terkait)
+        $lambdaMax = 0.0;
+        foreach ($kriteriaKeys as $j) {
+            $lambdaMax += $colSums[$j] * $weights[$j];
         }
-        $lambdaMax = $n > 0 ? array_sum($lambdaList) / $n : 0.0;
 
         // 5. Hitung Consistency Index (CI) & Consistency Ratio (CR)
         $ci = $n > 1 ? ($lambdaMax - $n) / ($n - 1) : 0.0;
@@ -123,10 +117,10 @@ class AhpService
             'column_sums' => $colSums,
             'normalized' => $normalized,
             'weights' => $weights,
-            'lambda_max' => round($lambdaMax, 4),
-            'ci' => round($ci, 4),
-            'ri' => round($ri, 3),
-            'cr' => round($cr, 4),
+            'lambda_max' => round($lambdaMax, 9),
+            'ci' => round($ci, 9),
+            'ri' => $ri,
+            'cr' => round($cr, 9),
             'is_consistent' => $isConsistent,
         ];
     }

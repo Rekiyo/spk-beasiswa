@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\CalonPenerima;
+use App\Models\KonfigurasiKriteria;
+use App\Models\KonfigurasiSeleksi;
+use App\Models\KonfigurasiSubKriteria;
 use App\Models\Kriteria;
 use App\Models\Penilaian;
 use App\Models\Periode;
@@ -16,16 +19,72 @@ class SpkDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        // Bersihkan data lama agar hanya menyisakan 2 periode tuntas (Sesuai Ketentuan 9)
+        // Bersihkan data lama agar hanya menyisakan data demo yang bersih
         Schema::disableForeignKeyConstraints();
         Penilaian::truncate();
         CalonPenerima::truncate();
         SubKriteria::truncate();
         Kriteria::truncate();
         Periode::truncate();
+        KonfigurasiSubKriteria::truncate();
+        KonfigurasiKriteria::truncate();
+        KonfigurasiSeleksi::truncate();
         Schema::enableForeignKeyConstraints();
 
         $sawService = new SawService;
+
+        // =========================================================================
+        // MASTER KONFIGURASI SELEKSI BAKU
+        // =========================================================================
+        $defaultMatrix = [
+            'C1' => ['C1' => 1.0, 'C2' => 2.0, 'C3' => 3.0, 'C4' => 4.0, 'C5' => 3.0],
+            'C2' => ['C1' => 0.5, 'C2' => 1.0, 'C3' => 2.0, 'C4' => 3.0, 'C5' => 2.0],
+            'C3' => ['C1' => 0.333, 'C2' => 0.5, 'C3' => 1.0, 'C4' => 2.0, 'C5' => 2.0],
+            'C4' => ['C1' => 0.250, 'C2' => 0.333, 'C3' => 0.5, 'C4' => 1.0, 'C5' => 2.0],
+            'C5' => ['C1' => 0.333, 'C2' => 0.5, 'C3' => 0.5, 'C4' => 0.5, 'C5' => 1.0],
+        ];
+
+        $masterKonfigurasi = KonfigurasiSeleksi::create([
+            'nama' => 'Standar Seleksi Prestasi Siswa SMK',
+            'deskripsi' => 'Paket konfigurasi seleksi baku beasiswa prestasi dengan 5 kriteria standar kejuruan dan perbandingan AHP konsisten (CR < 0.10).',
+            'versi' => 1,
+            'matriks_ahp' => $defaultMatrix,
+            'lambda_max' => 5.202,
+            'ci' => 0.051,
+            'cr' => 0.045,
+            'is_konsisten' => true,
+            'is_siap' => true,
+            'is_aktif' => true,
+        ]);
+
+        $masterKriteriasData = [
+            ['kode' => 'C1', 'nama' => 'Nilai Akademik', 'atribut' => 'benefit', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 100, 'satuan' => '/ 100', 'rentang' => '0 – 100 (Nilai Rapor Siswa SMK)', 'bobot' => 0.397000, 'urutan' => 1],
+            ['kode' => 'C2', 'nama' => 'Penghasilan Orang Tua', 'atribut' => 'cost', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 10000000, 'satuan' => 'Rp', 'rentang' => 'Rp 0 s/d > Rp 10.000.000', 'bobot' => 0.242000, 'urutan' => 2],
+            ['kode' => 'C3', 'nama' => 'Tanggungan Orang Tua', 'atribut' => 'benefit', 'tipe_input' => 'pilihan', 'min_val' => 1, 'max_val' => 5, 'satuan' => 'Orang', 'rentang' => '1 s/d > 4 Orang Tanggungan', 'bobot' => 0.157000, 'urutan' => 3],
+            ['kode' => 'C4', 'nama' => 'Ekstrakurikuler', 'atribut' => 'benefit', 'tipe_input' => 'pilihan', 'min_val' => 1, 'max_val' => 5, 'satuan' => 'Paket', 'rentang' => 'Paket 1 s/d 5 (Pramuka, Komputer, Paskibra, Olahraga, PMR)', 'bobot' => 0.109000, 'urutan' => 4],
+            ['kode' => 'C5', 'nama' => 'Ketidakhadiran', 'atribut' => 'cost', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 30, 'satuan' => 'Hari', 'rentang' => '0 – > 5 Hari Alpa', 'bobot' => 0.094000, 'urutan' => 5],
+        ];
+
+        foreach ($masterKriteriasData as $mkData) {
+            $mk = $masterKonfigurasi->kriterias()->create($mkData);
+            if ($mkData['kode'] === 'C3') {
+                $mk->subKriterias()->createMany([
+                    ['label' => '1 Orang Tanggungan', 'nilai' => 1, 'urutan' => 1],
+                    ['label' => '2 Orang Tanggungan', 'nilai' => 2, 'urutan' => 2],
+                    ['label' => '3 Orang Tanggungan', 'nilai' => 3, 'urutan' => 3],
+                    ['label' => '4 Orang Tanggungan', 'nilai' => 4, 'urutan' => 4],
+                    ['label' => '> 4 Orang Tanggungan', 'nilai' => 5, 'urutan' => 5],
+                ]);
+            } elseif ($mkData['kode'] === 'C4') {
+                $mk->subKriterias()->createMany([
+                    ['label' => 'Paket 1: Pramuka, Komputer, dan Paskibra', 'nilai' => 1, 'urutan' => 1],
+                    ['label' => 'Paket 2: Komputer dan Paskibra', 'nilai' => 2, 'urutan' => 2],
+                    ['label' => 'Paket 3: Pramuka dan Paskibra', 'nilai' => 3, 'urutan' => 3],
+                    ['label' => 'Paket 4: Olahraga', 'nilai' => 4, 'urutan' => 4],
+                    ['label' => 'Paket 5: Palang Merah / PMR & Organisasi', 'nilai' => 5, 'urutan' => 5],
+                ]);
+            }
+        }
 
         // =========================================================================
         // 1. PERIODE 1: AKTIF (TA 2026/2027 Ganjil – SMK Negeri 1 Prestasi)
@@ -34,19 +93,15 @@ class SpkDemoSeeder extends Seeder
             'nama' => 'TA 2026/2027 Ganjil – SMK Negeri 1 Prestasi',
             'tahun' => 2026,
             'kuota' => 5,
+            'ambang_batas' => SawService::AMBANG_BATAS,
+            'konfigurasi_seleksi_id' => $masterKonfigurasi->id,
             'tanggal_mulai' => Carbon::create(2026, 8, 1),
             'deadline' => Carbon::create(2026, 11, 30),
             'lambda_max' => 5.168,
             'ci' => 0.042,
             'cr' => 0.038,
             'is_final' => false,
-            'matriks_ahp' => [
-                'C1' => ['C1' => 1.0, 'C2' => 3.0, 'C3' => 4.0, 'C4' => 5.0, 'C5' => 6.0],
-                'C2' => ['C1' => 0.333, 'C2' => 1.0, 'C3' => 2.0, 'C4' => 3.0, 'C5' => 4.0],
-                'C3' => ['C1' => 0.250, 'C2' => 0.500, 'C3' => 1.0, 'C4' => 2.0, 'C5' => 3.0],
-                'C4' => ['C1' => 0.200, 'C2' => 0.333, 'C3' => 0.500, 'C4' => 1.0, 'C5' => 2.0],
-                'C5' => ['C1' => 0.167, 'C2' => 0.250, 'C3' => 0.333, 'C4' => 0.500, 'C5' => 1.0],
-            ],
+            'matriks_ahp' => $defaultMatrix,
         ]);
 
         $this->setupKriteriaDanSiswa($periodeAktif, $sawService, true);
@@ -58,6 +113,8 @@ class SpkDemoSeeder extends Seeder
             'nama' => 'TA 2025/2026 Genap – SMK Negeri 1 Prestasi',
             'tahun' => 2026,
             'kuota' => 5,
+            'ambang_batas' => SawService::AMBANG_BATAS,
+            'konfigurasi_seleksi_id' => $masterKonfigurasi->id,
             'tanggal_mulai' => Carbon::create(2026, 1, 10),
             'deadline' => Carbon::create(2026, 4, 20),
             'lambda_max' => 5.150,

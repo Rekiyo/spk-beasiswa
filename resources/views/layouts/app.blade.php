@@ -40,14 +40,19 @@
 
             <a href="{{ route('periode.index') }}"
                class="{{ request()->routeIs('periode.*', 'kriteria.*', 'sub-kriteria.*') ? 'active' : '' }}">
-                Periode
+                Periode Seleksi
+            </a>
+
+            <a href="{{ route('konfigurasi.index') }}"
+               class="{{ request()->routeIs('konfigurasi.*') ? 'active' : '' }}">
+                Konfigurasi Seleksi
             </a>
         </nav>
 
-        <div class="app-header__user" id="userDropdownToggle" style="cursor:pointer; position:relative;">
+        <div class="app-header__user">
             <div>
-                <strong>{{ Auth::user()->name }}</strong>
-                <small>{{ Auth::user()->email }}</small>
+                <strong>Panitia Beasiswa</strong>
+                <small>Administrator Pusat</small>
             </div>
 
             <div class="app-header__avatar">
@@ -58,78 +63,7 @@
             </div>
 
             <span class="app-header__chevron">⌄</span>
-
-            {{-- Dropdown Menu --}}
-            <div id="userDropdownMenu" style="
-                display: none;
-                position: absolute;
-                top: calc(100% + 10px);
-                right: 0;
-                min-width: 180px;
-                background: #ffffff;
-                border: 1px solid #e5e7eb;
-                border-radius: 12px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-                overflow: hidden;
-                z-index: 999;
-                animation: dropdownIn 0.15s ease;
-            ">
-                <div style="padding: 12px 14px; border-bottom: 1px solid #f3f4f6;">
-                    <div style="font-size: 12px; font-weight: 700; color: #111827;">{{ Auth::user()->name }}</div>
-                    <div style="font-size: 10px; color: #667085; margin-top: 2px;">{{ Auth::user()->email }}</div>
-                </div>
-                <form method="POST" action="{{ route('logout') }}" id="logoutForm">
-                    @csrf
-                    <button type="submit" style="
-                        width: 100%;
-                        padding: 11px 14px;
-                        display: flex;
-                        align-items: center;
-                        gap: 9px;
-                        background: none;
-                        border: none;
-                        cursor: pointer;
-                        font-size: 12px;
-                        font-weight: 600;
-                        color: #ef4444;
-                        font-family: inherit;
-                        transition: background 0.15s;
-                        text-align: left;
-                    " onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                            <polyline points="16 17 21 12 16 7"/>
-                            <line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                        Keluar
-                    </button>
-                </form>
-            </div>
         </div>
-
-        <style>
-            @keyframes dropdownIn {
-                from { opacity: 0; transform: translateY(-6px); }
-                to   { opacity: 1; transform: translateY(0); }
-            }
-        </style>
-
-        <script>
-        (function () {
-            const toggle = document.getElementById('userDropdownToggle');
-            const menu   = document.getElementById('userDropdownMenu');
-            if (!toggle || !menu) return;
-
-            toggle.addEventListener('click', function (e) {
-                e.stopPropagation();
-                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-            });
-
-            document.addEventListener('click', function () {
-                menu.style.display = 'none';
-            });
-        })();
-        </script>
     </header>
 
 
@@ -217,6 +151,11 @@
                 <a href="{{ route('periode.index') }}" class="{{ request()->routeIs('periode.*') ? 'active' : '' }}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                     Periode Seleksi
+                </a>
+
+                <a href="{{ route('konfigurasi.index') }}" class="{{ request()->routeIs('konfigurasi.*') ? 'active' : '' }}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                    Konfigurasi Seleksi
                 </a>
 
                 <a href="{{ $latestPeriode ? route('periode.seleksi', $latestPeriode) : '#' }}">

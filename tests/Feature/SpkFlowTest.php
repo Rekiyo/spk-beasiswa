@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CalonPenerima;
 use App\Models\Periode;
 use App\Services\AhpService;
 use Database\Seeders\SpkDemoSeeder;
@@ -37,7 +38,7 @@ class SpkFlowTest extends TestCase
         $response = $this->get(route('periode.create'));
         $response->assertStatus(200);
         $response->assertSee('Tambah Periode Seleksi Baru');
-        $response->assertSee('Data Pembobotan Kriteria');
+        $response->assertSee('Pilih Konfigurasi Seleksi');
     }
 
     public function test_seleksi_page_renders_with_saw_rankings(): void
@@ -143,13 +144,68 @@ class SpkFlowTest extends TestCase
 
         $response = $this->post(route('periode.seleksi.store', $periode), $payload);
         $response->assertRedirect(route('periode.seleksi', $periode));
-        $response->assertSessionHas('sukses', "Data siswa Nama Siswa Terupdate berhasil diperbarui dan ranking SAW dihitung ulang.");
+        $response->assertSessionHas('sukses', 'Data siswa Nama Siswa Terupdate berhasil diperbarui dan ranking SAW dihitung ulang.');
 
         $this->assertDatabaseHas('calon_penerimas', [
             'id' => $calon->id,
             'nama' => 'Nama Siswa Terupdate',
             'program_studi' => 'Desain Komunikasi Visual',
         ]);
+    }
+
+    public function test_candidate_store_with_decimal_score_using_dot_and_comma(): void
+    {
+        $this->seed(SpkDemoSeeder::class);
+        $periode = Periode::where('is_final', false)->first();
+        $kriterias = $periode->kriterias()->get()->keyBy('kode');
+
+        // Uji 1: Menggunakan titik desimal '78.6'
+        $payloadDot = [
+            'nama' => 'Siswa Desimal Titik',
+            'nim' => '0078888881',
+            'program_studi' => 'Rekayasa Perangkat Lunak',
+            'semester' => 'XII RPL 1',
+            'jalur' => 'Reguler Prestasi SMK',
+            'nilai' => [
+                $kriterias['C1']->id => '78.6',
+                $kriterias['C2']->id => '2.500.000',
+                $kriterias['C3']->id => 4,
+                $kriterias['C4']->id => 3,
+                $kriterias['C5']->id => 2,
+            ],
+        ];
+
+        $responseDot = $this->post(route('periode.seleksi.store', $periode), $payloadDot);
+        $responseDot->assertRedirect(route('periode.seleksi', $periode));
+
+        $calonDot = CalonPenerima::where('nim', '0078888881')->first();
+        $this->assertNotNull($calonDot);
+        $penilaianC1Dot = $calonDot->penilaians()->where('kriteria_id', $kriterias['C1']->id)->first();
+        $this->assertEquals(78.6, $penilaianC1Dot->nilai);
+
+        // Uji 2: Menggunakan koma desimal '78,6'
+        $payloadComma = [
+            'nama' => 'Siswa Desimal Koma',
+            'nim' => '0078888882',
+            'program_studi' => 'Rekayasa Perangkat Lunak',
+            'semester' => 'XII RPL 1',
+            'jalur' => 'Reguler Prestasi SMK',
+            'nilai' => [
+                $kriterias['C1']->id => '78,6',
+                $kriterias['C2']->id => '2.500.000',
+                $kriterias['C3']->id => 4,
+                $kriterias['C4']->id => 3,
+                $kriterias['C5']->id => 2,
+            ],
+        ];
+
+        $responseComma = $this->post(route('periode.seleksi.store', $periode), $payloadComma);
+        $responseComma->assertRedirect(route('periode.seleksi', $periode));
+
+        $calonComma = CalonPenerima::where('nim', '0078888882')->first();
+        $this->assertNotNull($calonComma);
+        $penilaianC1Comma = $calonComma->penilaians()->where('kriteria_id', $kriterias['C1']->id)->first();
+        $this->assertEquals(78.6, $penilaianC1Comma->nilai);
     }
 
     public function test_candidate_destroy_shows_delete_notification(): void
@@ -180,15 +236,15 @@ class SpkFlowTest extends TestCase
 
         // 2. Import CSV text
         $csvData = "NISN,Nama Siswa,Jurusan SMK,Kelas,C1_Rapor,C2_Gaji,C3_Tanggungan,C4_Ekskul,C5_Alpa\n"
-                 . "0091112223,Siswa Baru Import,Teknik Otomotif,XII TKR 1,91.50,1800000,3,4,0\n"
-                 . "0091112224,Siswa Kedua Import,Rekayasa Perangkat Lunak,XII RPL 2,88.00,2200000,2,3,1\n";
+                 ."0091112223,Siswa Baru Import,Teknik Otomotif,XII TKR 1,91.50,1800000,3,4,0\n"
+                 ."0091112224,Siswa Kedua Import,Rekayasa Perangkat Lunak,XII RPL 2,88.00,2200000,2,3,1\n";
 
         $importResponse = $this->post(route('periode.seleksi.import', $periode), [
             'raw_csv' => $csvData,
         ]);
 
         $importResponse->assertRedirect(route('periode.seleksi', $periode));
-        $importResponse->assertSessionHas('sukses', "Berhasil mengimpor 2 data siswa dan memperbarui perangkingan SAW.");
+        $importResponse->assertSessionHas('sukses', 'Berhasil mengimpor 2 data siswa dan memperbarui perangkingan SAW.');
 
         $this->assertDatabaseHas('calon_penerimas', [
             'periode_id' => $periode->id,
@@ -203,7 +259,7 @@ class SpkFlowTest extends TestCase
         $periode = Periode::where('is_final', false)->first();
 
         $payload = [
-            'nama' => $periode->nama . ' - Diperbarui',
+            'nama' => $periode->nama.' - Diperbarui',
             'tahun' => $periode->tahun,
             'kuota' => 6,
             'tanggal_mulai' => $periode->tanggal_mulai->format('Y-m-d'),

@@ -163,7 +163,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($cadanganCalon->take(5) as $cd)
+                    @foreach ($cadanganCalon as $cd)
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td class="text-center">{{ $cd->nim }}</td>

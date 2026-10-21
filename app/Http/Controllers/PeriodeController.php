@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KonfigurasiSeleksi;
 use App\Models\Kriteria;
 use App\Models\Periode;
 use App\Services\AhpService;
@@ -72,96 +73,21 @@ class PeriodeController extends Controller
     }
 
     /**
-     * Menampilkan formulir pembuatan periode baru lengkap (Image 3)
+     * Menampilkan formulir pembuatan periode baru dengan pemilihan konfigurasi seleksi
      */
     public function create()
     {
-        $defaultKriterias = [
-            [
-                'kode' => 'C1',
-                'nama' => 'Nilai Akademik',
-                'atribut' => 'benefit',
-                'tipe_input' => 'angka',
-                'min_val' => 0,
-                'max_val' => 100,
-                'satuan' => '/ 100 (Rapor)',
-                'rentang' => '0 – 100 (Nilai Rapor Siswa SMK)',
-                'pilihan' => [],
-            ],
-            [
-                'kode' => 'C2',
-                'nama' => 'Penghasilan Orang Tua',
-                'atribut' => 'cost',
-                'tipe_input' => 'angka',
-                'min_val' => 0,
-                'max_val' => 10000000,
-                'satuan' => 'Rupiah (Slip Gaji)',
-                'rentang' => 'Rp 0 s/d > Rp 10.000.000',
-                'pilihan' => [],
-            ],
-            [
-                'kode' => 'C3',
-                'nama' => 'Tanggungan Orang Tua',
-                'atribut' => 'benefit',
-                'tipe_input' => 'pilihan',
-                'min_val' => 1,
-                'max_val' => 5,
-                'satuan' => 'Orang',
-                'rentang' => '1 s/d > 4 Orang Tanggungan',
-                'pilihan' => [
-                    ['label' => '1 Orang Tanggungan', 'nilai' => 1],
-                    ['label' => '2 Orang Tanggungan', 'nilai' => 2],
-                    ['label' => '3 Orang Tanggungan', 'nilai' => 3],
-                    ['label' => '4 Orang Tanggungan', 'nilai' => 4],
-                    ['label' => '> 4 Orang Tanggungan', 'nilai' => 5],
-                ],
-            ],
-            [
-                'kode' => 'C4',
-                'nama' => 'Ekstrakurikuler',
-                'atribut' => 'benefit',
-                'tipe_input' => 'pilihan',
-                'min_val' => 1,
-                'max_val' => 5,
-                'satuan' => 'Paket',
-                'rentang' => 'Menu Paket: Paket 1 s/d 5 (Konversi SAW Nilai 1 s/d 5)',
-                'pilihan' => [
-                    ['label' => 'Paket 1: Pramuka, Komputer, dan Paskibra', 'nilai' => 1],
-                    ['label' => 'Paket 2: Komputer dan Paskibra', 'nilai' => 2],
-                    ['label' => 'Paket 3: Pramuka dan Paskibra', 'nilai' => 3],
-                    ['label' => 'Paket 4: Olahraga', 'nilai' => 4],
-                    ['label' => 'Paket 5: Palang Merah / PMR & Organisasi', 'nilai' => 5],
-                ],
-            ],
-            [
-                'kode' => 'C5',
-                'nama' => 'Ketidakhadiran',
-                'atribut' => 'cost',
-                'tipe_input' => 'angka',
-                'min_val' => 0,
-                'max_val' => 30,
-                'satuan' => 'Hari Alpa',
-                'rentang' => '0 Hari s/d > 5 Hari (Rekap Presensi/Alpa)',
-                'pilihan' => [],
-            ],
-        ];
+        $konfigurasis = KonfigurasiSeleksi::with(['kriterias.subKriterias'])
+            ->where('is_siap', true)
+            ->where('is_konsisten', true)
+            ->orderByDesc('id')
+            ->get();
 
-        // Default AHP Matrix (menghasilkan CR = 0.038 / konsisten)
-        $defaultMatrix = [
-            'C1' => ['C1' => 1.0, 'C2' => 3.0, 'C3' => 4.0, 'C4' => 5.0, 'C5' => 6.0],
-            'C2' => ['C1' => 0.333, 'C2' => 1.0, 'C3' => 2.0, 'C4' => 3.0, 'C5' => 4.0],
-            'C3' => ['C1' => 0.250, 'C2' => 0.500, 'C3' => 1.0, 'C4' => 2.0, 'C5' => 3.0],
-            'C4' => ['C1' => 0.200, 'C2' => 0.333, 'C3' => 0.500, 'C4' => 1.0, 'C5' => 2.0],
-            'C5' => ['C1' => 0.167, 'C2' => 0.250, 'C3' => 0.333, 'C4' => 0.500, 'C5' => 1.0],
-        ];
-
-        $ahpResult = $this->ahpService->hitung(['C1', 'C2', 'C3', 'C4', 'C5'], $defaultMatrix);
-
-        return view('periode.create', compact('defaultKriterias', 'defaultMatrix', 'ahpResult'));
+        return view('periode.create', compact('konfigurasis'));
     }
 
     /**
-     * Menyimpan periode baru beserta kriteria dan pembobotan AHP
+     * Menyimpan periode baru beserta paket konfigurasi seleksi terpilih
      */
     public function store(Request $request)
     {
@@ -169,121 +95,56 @@ class PeriodeController extends Controller
             'nama' => 'required|string|max:255',
             'tahun' => 'required|digits:4',
             'kuota' => 'required|integer|min:1',
+            'total_siswa' => 'nullable|integer|min:0',
+            'ambang_batas' => 'nullable|numeric|between:0,1',
             'tanggal_mulai' => 'required|date',
             'deadline' => 'required|date|after_or_equal:tanggal_mulai',
-            'kriterias' => 'nullable|array',
-            'matrix' => 'nullable|array',
+            'konfigurasi_seleksi_id' => 'required|exists:konfigurasi_seleksis,id',
         ]);
 
-        $matrix = $request->input('matrix', []);
-        $kriteriasInput = $request->input('kriterias', []);
+        $konfigurasi = KonfigurasiSeleksi::with(['kriterias.subKriterias'])
+            ->findOrFail($data['konfigurasi_seleksi_id']);
 
-        $kriteriaCodes = ! empty($kriteriasInput)
-            ? array_column($kriteriasInput, 'kode')
-            : ['C1', 'C2', 'C3', 'C4', 'C5'];
+        if (! $konfigurasi->is_siap || ! $konfigurasi->is_konsisten) {
+            return back()->withInput()->with('gagal', 'Paket konfigurasi seleksi yang dipilih belum memenuhi syarat konsistensi AHP atau belum berstatus siap.');
+        }
 
-        $ahpResult = $this->ahpService->hitung($kriteriaCodes, $matrix);
-
-        DB::transaction(function () use ($data, $kriteriasInput, $ahpResult, &$periode) {
+        DB::transaction(function () use ($data, $konfigurasi, &$periode) {
             $periode = Periode::create([
                 'nama' => $data['nama'],
                 'tahun' => $data['tahun'],
                 'kuota' => $data['kuota'],
+                'total_siswa' => isset($data['total_siswa']) ? intval($data['total_siswa']) : 0,
+                'ambang_batas' => isset($data['ambang_batas']) && $data['ambang_batas'] !== null ? floatval($data['ambang_batas']) : SawService::AMBANG_BATAS,
                 'tanggal_mulai' => $data['tanggal_mulai'],
                 'deadline' => $data['deadline'],
-                'lambda_max' => $ahpResult['lambda_max'] ?? null,
-                'ci' => $ahpResult['ci'] ?? null,
-                'cr' => $ahpResult['cr'] ?? null,
-                'matriks_ahp' => $ahpResult['matrix'] ?? null,
+                'konfigurasi_seleksi_id' => $konfigurasi->id,
+                'lambda_max' => $konfigurasi->lambda_max,
+                'ci' => $konfigurasi->ci,
+                'cr' => $konfigurasi->cr,
+                'matriks_ahp' => $konfigurasi->matriks_ahp,
                 'is_final' => false,
             ]);
 
-            // Jika form menyertakan data kriteria kustom
-            if (! empty($kriteriasInput)) {
-                foreach ($kriteriasInput as $kData) {
-                    $kode = $kData['kode'];
-                    $bobot = $ahpResult['weights'][$kode] ?? (1.0 / count($kriteriasInput));
-                    $tipe = $kData['tipe_input'] ?? 'angka';
+            // Salin / Snapshot 5 kriteria beserta sub-kriterianya ke periode ini
+            foreach ($konfigurasi->kriterias as $kData) {
+                $kriteria = $periode->kriterias()->create([
+                    'kode' => $kData->kode,
+                    'nama' => $kData->nama,
+                    'atribut' => $kData->atribut,
+                    'tipe_input' => $kData->tipe_input,
+                    'rentang' => $kData->rentang,
+                    'min_val' => $kData->min_val,
+                    'max_val' => $kData->max_val,
+                    'satuan' => $kData->satuan,
+                    'bobot' => $kData->bobot,
+                ]);
 
-                    $minVal = isset($kData['min_val']) ? floatval($kData['min_val']) : 0;
-                    $maxVal = isset($kData['max_val']) ? floatval($kData['max_val']) : 100;
-                    $satuan = $kData['satuan'] ?? null;
-                    $rentang = $kData['rentang'] ?? ($tipe === 'angka' ? "Rentang: {$minVal} s/d {$maxVal}" . ($satuan ? " ({$satuan})" : "") : 'Pilihan');
-
-                    $kriteria = $periode->kriterias()->create([
-                        'kode' => $kode,
-                        'nama' => $kData['nama'],
-                        'atribut' => $kData['atribut'],
-                        'tipe_input' => $tipe,
-                        'rentang' => $rentang,
-                        'min_val' => $minVal,
-                        'max_val' => $maxVal,
-                        'satuan' => $satuan,
-                        'bobot' => $bobot,
-                    ]);
-
-                    // Jika tipe pilihan, simpan sub-kriteria kustom dari form
-                    if ($tipe === 'pilihan') {
-                        $pilihanArr = $kData['pilihan'] ?? [];
-                        if (! empty($pilihanArr) && is_array($pilihanArr)) {
-                            foreach ($pilihanArr as $p) {
-                                if (! empty($p['label'])) {
-                                    $kriteria->subKriterias()->create([
-                                        'label' => trim($p['label']),
-                                        'nilai' => intval($p['nilai'] ?? 1),
-                                    ]);
-                                }
-                            }
-                        } else {
-                            $kriteria->subKriterias()->createMany([
-                                ['label' => 'Tingkat 1 / Opsi 1', 'nilai' => 1],
-                                ['label' => 'Tingkat 2 / Opsi 2', 'nilai' => 2],
-                                ['label' => 'Tingkat 3 / Opsi 3', 'nilai' => 3],
-                                ['label' => 'Tingkat 4 / Opsi 4', 'nilai' => 4],
-                                ['label' => 'Tingkat 5 / Opsi 5', 'nilai' => 5],
-                            ]);
-                        }
-                    }
-                }
-            } else {
-                // Buat 5 kriteria standar
-                $defaultKriterias = [
-                    ['kode' => 'C1', 'nama' => 'Nilai Akademik', 'atribut' => 'benefit', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 100, 'satuan' => '/ 100', 'rentang' => '0 – 100 (Nilai Rapor Siswa SMK)'],
-                    ['kode' => 'C2', 'nama' => 'Penghasilan Orang Tua', 'atribut' => 'cost', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 10000000, 'satuan' => 'Rp', 'rentang' => 'Rp 0 s/d > Rp 10.000.000'],
-                    ['kode' => 'C3', 'nama' => 'Tanggungan Orang Tua', 'atribut' => 'benefit', 'tipe_input' => 'pilihan', 'min_val' => 1, 'max_val' => 5, 'satuan' => 'Orang', 'rentang' => '1 s/d > 4 Orang Tanggungan'],
-                    ['kode' => 'C4', 'nama' => 'Ekstrakurikuler', 'atribut' => 'benefit', 'tipe_input' => 'pilihan', 'min_val' => 1, 'max_val' => 5, 'satuan' => 'Paket', 'rentang' => 'Paket 1 s/d 5 (Pramuka, Komputer, Paskibra, Olahraga, PMR)'],
-                    ['kode' => 'C5', 'nama' => 'Ketidakhadiran', 'atribut' => 'cost', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 30, 'satuan' => 'Hari', 'rentang' => '0 – > 5 Hari Alpa'],
-                ];
-                foreach ($defaultKriterias as $kData) {
-                    $kode = $kData['kode'];
-                    $bobot = $ahpResult['weights'][$kode] ?? 0.20;
-                    $kriteria = $periode->kriterias()->create([
-                        'kode' => $kode,
-                        'nama' => $kData['nama'],
-                        'atribut' => $kData['atribut'],
-                        'tipe_input' => $kData['tipe_input'],
-                        'rentang' => $kData['rentang'],
-                        'min_val' => $kData['min_val'] ?? 0,
-                        'max_val' => $kData['max_val'] ?? 100,
-                        'satuan' => $kData['satuan'] ?? null,
-                        'bobot' => $bobot,
-                    ]);
-
-                    if ($kode === 'C3') {
-                        $kriteria->subKriterias()->createMany([
-                            ['label' => '1 Orang Tanggungan', 'nilai' => 1],
-                            ['label' => '2 Orang Tanggungan', 'nilai' => 2],
-                            ['label' => '3 Orang Tanggungan', 'nilai' => 3],
-                            ['label' => '4 Orang Tanggungan', 'nilai' => 4],
-                            ['label' => '> 4 Orang Tanggungan', 'nilai' => 5],
-                        ]);
-                    } elseif ($kode === 'C4') {
-                        $kriteria->subKriterias()->createMany([
-                            ['label' => 'Paket 1: Pramuka, Komputer, dan Paskibra', 'nilai' => 1],
-                            ['label' => 'Paket 2: Komputer dan Paskibra', 'nilai' => 2],
-                            ['label' => 'Paket 3: Pramuka dan Paskibra', 'nilai' => 3],
-                            ['label' => 'Paket 4: Olahraga', 'nilai' => 4],
-                            ['label' => 'Paket 5: Palang Merah / PMR & Organisasi', 'nilai' => 5],
+                if ($kData->tipe_input === 'pilihan') {
+                    foreach ($kData->subKriterias as $sub) {
+                        $kriteria->subKriterias()->create([
+                            'label' => $sub->label,
+                            'nilai' => $sub->nilai,
                         ]);
                     }
                 }
@@ -291,7 +152,7 @@ class PeriodeController extends Controller
         });
 
         return redirect()->route('periode.index')
-            ->with('sukses', 'Periode seleksi dan pembobotan AHP berhasil disimpan.');
+            ->with('sukses', "Periode seleksi '{$periode->nama}' berhasil dibuat menggunakan paket konfigurasi '{$konfigurasi->nama}'.");
     }
 
     /**
@@ -336,6 +197,8 @@ class PeriodeController extends Controller
             'nama' => 'required|string|max:255',
             'tahun' => 'required|digits:4',
             'kuota' => 'required|integer|min:1',
+            'total_siswa' => 'nullable|integer|min:0',
+            'ambang_batas' => 'nullable|numeric|between:0,1',
             'tanggal_mulai' => 'required|date',
             'deadline' => 'required|date|after_or_equal:tanggal_mulai',
             'kriterias' => 'nullable|array',
@@ -353,6 +216,8 @@ class PeriodeController extends Controller
                 'nama' => $data['nama'],
                 'tahun' => $data['tahun'],
                 'kuota' => $data['kuota'],
+                'total_siswa' => array_key_exists('total_siswa', $data) ? (intval($data['total_siswa']) ?: 0) : $periode->total_siswa,
+                'ambang_batas' => array_key_exists('ambang_batas', $data) && $data['ambang_batas'] !== null ? floatval($data['ambang_batas']) : $periode->ambang_batas,
                 'tanggal_mulai' => $data['tanggal_mulai'],
                 'deadline' => $data['deadline'],
                 'lambda_max' => $ahpResult['lambda_max'] ?? $periode->lambda_max,
@@ -391,7 +256,7 @@ class PeriodeController extends Controller
                         if (! empty($input['rentang'])) {
                             $updateData['rentang'] = $input['rentang'];
                         } else {
-                            $updateData['rentang'] = "Rentang: {$minVal} s/d {$maxVal}" . ($satuan ? " ({$satuan})" : '');
+                            $updateData['rentang'] = "Rentang: {$minVal} s/d {$maxVal}".($satuan ? " ({$satuan})" : '');
                         }
                     } else {
                         // Tipe input pilihan: update atau buat sub-kriteria kustom dari user
@@ -408,7 +273,7 @@ class PeriodeController extends Controller
                                     $labels[] = trim($p['label']);
                                 }
                             }
-                            $updateData['rentang'] = ! empty($labels) ? 'Pilihan: ' . implode(', ', array_slice($labels, 0, 3)) . (count($labels) > 3 ? '...' : '') : 'Pilihan sub-kriteria';
+                            $updateData['rentang'] = ! empty($labels) ? 'Pilihan: '.implode(', ', array_slice($labels, 0, 3)).(count($labels) > 3 ? '...' : '') : 'Pilihan sub-kriteria';
                         } elseif (isset($input['rentang'])) {
                             $updateData['rentang'] = $input['rentang'];
                         }

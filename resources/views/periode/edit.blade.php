@@ -62,10 +62,11 @@
                     @error('nama') <span class="text-danger text-11">{{ $message }}</span> @enderror
                 </div>
 
-                <div class="grid-2-col">
+                <div class="grid-3-col">
                     <div class="form-group">
                         <label>Tahun Ajaran <span class="required">*</span></label>
                         <input type="text" name="tahun" class="form-input" value="{{ old('tahun', $periode->tahun) }}" required pattern="\d{4}">
+                        <span style="font-size:11px; color:#6b7280; margin-top:3px; display:block;">Format 4 digit tahun (contoh: {{ $periode->tahun }}).</span>
                         @error('tahun') <span class="text-danger text-11">{{ $message }}</span> @enderror
                     </div>
 
@@ -75,7 +76,18 @@
                             <input type="number" name="kuota" class="form-input" value="{{ old('kuota', $periode->kuota) }}" min="1" required>
                             <span class="input-suffix">Siswa</span>
                         </div>
+                        <span style="font-size:11px; color:#6b7280; margin-top:3px; display:block;">Jumlah siswa yang ditetapkan lolos menerima beasiswa.</span>
                         @error('kuota') <span class="text-danger text-11">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label>Jumlah Total Siswa yang Ditetapkan <span class="required">*</span></label>
+                        <div class="input-suffix-wrapper">
+                            <input type="number" name="total_siswa" class="form-input" value="{{ old('total_siswa', $periode->total_siswa ?: 300) }}" min="1" placeholder="Contoh: 300" required>
+                            <span class="input-suffix">Siswa</span>
+                        </div>
+                        <span style="font-size:11px; color:#6b7280; margin-top:3px; display:block;">Target cakupan pendaftaran siswa SMK pada periode seleksi ini.</span>
+                        @error('total_siswa') <span class="text-danger text-11">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
@@ -280,7 +292,7 @@
             <div class="section-header">
                 <div class="section-title-wrapper">
                     <div class="section-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
                     </div>
                     <div>
                         <div style="display:flex; align-items:center; gap:8px;">
@@ -484,7 +496,7 @@
                                 @foreach ($kKeys as $k)
                                     @php
                                         $w = $ahpResult['weights'][$k] ?? 0.20;
-                                        $pct = round($w * 100, 1);
+                                        $pct = round($w * 100);
                                     @endphp
                                     <div class="weight-item">
                                         <div class="weight-info">
@@ -493,7 +505,7 @@
                                                 <span class="text-gray" style="font-size:12px;">{{ $kLabels[$k] }}</span>
                                             </div>
                                             <span id="weight_label_{{ $k }}" class="font-bold font-mono text-gray">
-                                                {{ number_format($w, 3) }} ({{ $pct }}%)
+                                                {{ number_format($w, 2) }} ({{ $pct }}%)
                                             </span>
                                         </div>
                                         <div class="progress-bar">
@@ -506,7 +518,7 @@
 
                         <div class="auto-sum-card">
                             <span class="text-brand font-bold">Total Bobot (∑ W_i)</span>
-                            <strong class="font-mono text-brand font-bold" style="font-size:16px;">1.000 (100%)</strong>
+                            <strong class="font-mono text-brand font-bold" style="font-size:16px;">1.00 (100%)</strong>
                         </div>
                     </div>
                 </div>
@@ -603,16 +615,11 @@ document.addEventListener('DOMContentLoaded', function () {
             weights[i] = rowSum / n;
         });
 
-        // 5. Hitung Lambda Max
-        const lambdas = [];
-        kKeys.forEach(i => {
-            let wsv = 0.0;
-            kKeys.forEach(j => {
-                wsv += A[i][j] * weights[j];
-            });
-            lambdas.push(wsv / (weights[i] || 0.0001));
+        // 5. Hitung Lambda Max sesuai rumus referensi: Σ (Total Kolom_j × Bobot_j)
+        let lambdaMax = 0.0;
+        kKeys.forEach(j => {
+            lambdaMax += colSums[j] * weights[j];
         });
-        const lambdaMax = lambdas.reduce((a, b) => a + b, 0) / n;
 
         // 6. Hitung CI & CR
         const ci = Math.max(0, (lambdaMax - n) / (n - 1));
@@ -631,53 +638,30 @@ document.addEventListener('DOMContentLoaded', function () {
         const crAlertTitle = document.getElementById('crAlertTitle');
         const crAlertText = document.getElementById('crAlertText');
 
-        if (cr <= 0.10) {
-    crAlert.removeAttribute('style');
-    crAlert.className = 'alert alert-success';
-    crAlertTitle.innerText = `KONSISTEN (CR = ${cr.toFixed(3)} < 0.10)`;
-    crAlertText.innerText = `Rasio konsistensi ${(cr * 100).toFixed(1)}% memenuhi standar toleransi Saaty (< 10%). Bobot valid untuk SAW.`;
-} else {
-    crAlert.className = 'alert';
-    crAlert.style.background = '#fffbeb';
-    crAlert.style.border = '1px solid #fde68a';
-    crAlert.style.color = '#92400e';
-    crAlertTitle.innerText = `PERHATIAN (CR = ${cr.toFixed(3)} >= 0.10)`;
-    crAlertText.innerText = `Rasio konsistensi melebihi 10%. Disarankan meninjau ulang perbandingan nilai antar kriteria.`;
-}
-
-        // Update Progress Bar Bobot Wi — Largest Remainder Method
-        // agar total tampilan persentase selalu tepat 100%
-        const rawPcts = {};
-        kKeys.forEach(k => {
-            rawPcts[k] = (weights[k] || 0.20) * 100;
-        });
-
-        const floored = {};
-        let sumFloored = 0;
-        kKeys.forEach(k => {
-            floored[k] = Math.floor(rawPcts[k] * 10) / 10;
-            sumFloored += floored[k];
-        });
-
-        let remainder = Math.round((100 - sumFloored) * 10);
-
-        const sorted = [...kKeys].sort((a, b) =>
-            (rawPcts[b] - floored[b]) - (rawPcts[a] - floored[a])
-        );
-
-        const finalPcts = { ...floored };
-        for (let i = 0; i < remainder; i++) {
-            finalPcts[sorted[i]] = Math.round((finalPcts[sorted[i]] + 0.1) * 10) / 10;
+        if (crAlert && crAlertTitle && crAlertText) {
+            if (cr <= 0.10) {
+                crAlert.className = 'alert alert-success';
+                crAlertTitle.innerText = `KONSISTEN (CR = ${cr.toFixed(3)} < 0.10)`;
+                crAlertText.innerText = `Rasio konsistensi ${(cr * 100).toFixed(1)}% memenuhi standar toleransi Saaty (< 10%). Bobot valid untuk SAW.`;
+            } else {
+                crAlert.className = 'alert';
+                crAlert.style.background = '#fffbeb';
+                crAlert.style.border = '1px solid #fde68a';
+                crAlert.style.color = '#92400e';
+                crAlertTitle.innerText = `PERHATIAN (CR = ${cr.toFixed(3)} >= 0.10)`;
+                crAlertText.innerText = `Rasio konsistensi melebihi 10%. Disarankan meninjau ulang perbandingan nilai antar kriteria.`;
+            }
         }
 
+        // Update Progress Bar Bobot Wi
         kKeys.forEach(k => {
-    const pct = finalPcts[k].toFixed(1);
-    const wDisplay = (finalPcts[k] / 100).toFixed(3);
-    const lbl = document.getElementById(`weight_label_${k}`);
-    const bar = document.getElementById(`weight_bar_${k}`);
-    if (lbl) lbl.innerText = `${wDisplay} (${pct}%)`;
-    if (bar) bar.style.width = `${pct}%`;
-});
+            const w = weights[k] || 0.20;
+            const pct = Math.round(w * 100);
+            const lbl = document.getElementById(`weight_label_${k}`);
+            const bar = document.getElementById(`weight_bar_${k}`);
+            if (lbl) lbl.innerText = `${w.toFixed(2)} (${pct}%)`;
+            if (bar) bar.style.width = `${pct}%`;
+        });
     }
 
     window.switchTipeKriteria = function(idx, tipe) {

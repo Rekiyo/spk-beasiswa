@@ -12,6 +12,8 @@ export default defineConfig({
                 'resources/css/periode.css',
                 'resources/css/periode_create.css',
                 'resources/css/seleksi.css',
+                'resources/css/konfigurasi.css',
+                'resources/css/konfigurasi_form.css',
                 'resources/js/app.js',
             ],
             refresh: true,

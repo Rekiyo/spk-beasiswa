@@ -58,8 +58,8 @@
                 <div class="stat-box">
                     <div class="stat-content">
                          <span class="stat-label">ALOKASI KUOTA</span>
-                        <strong class="stat-value">15 Kursi Penerima</strong>
-                        <span class="stat-sub">Alokasi DIPA Universitas <span class="text-gray-600 font-medium">(Total 128 Pendaftar)</span></span>
+                        <strong class="stat-value">15 Siswa Penerima</strong>
+                        <span class="stat-sub">Alokasi Kuota Beasiswa Sekolah <span class="text-gray-600 font-medium">(Total 128 Pendaftar)</span></span>
                     </div>
                     <div class="stat-icon bg-brand-light text-brand"><svg class="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg></div>
                 </div>
@@ -115,8 +115,8 @@
                             <input type="text" class="form-input" value="Ahmad Rizky Pratama">
                         </div>
                         <div class="form-group">
-                            <label>Nomor Induk Mahasiswa (NIM)</label>
-                            <input type="text" class="form-input font-mono" value="2023081045">
+                            <label>Nomor Induk Siswa Nasional (NISN)</label>
+                            <input type="text" class="form-input font-mono" value="0078123416">
                         </div>
                          <div class="form-group">
                             <label>Program Studi / Jurusan</label>
@@ -202,7 +202,7 @@
                                 <span class="c-title">C4 – Ekstrakurikuler & Organisasi</span>
                                 <span class="tag-sm tag-success">Benefit (W: 20%)</span>
                             </div>
-                            <p class="c-desc">Pilihan Paket Kegiatan Terdaftar Mahasiswa</p>
+                            <p class="c-desc">Pilihan Paket Kegiatan Terdaftar Siswa</p>
                             <div class="flex flex-wrap gap-2">
                                 <select class="form-select font-semibold flex-1">
                                      <option selected>Paket 4: Kegiatan Ilmiah & Penalaran Prestasi</option>
@@ -264,7 +264,7 @@
                 <thead>
                     <tr>
                         <th class="text-center w-16">RANK</th>
-                        <th>MAHASISWA / PROGRAM STUDI</th>
+                        <th>SISWA / KONSENTRASI KEAHLIAN</th>
                         <th>MATRIKS NILAI ASLI (C1–C5)</th>
                         <th class="text-center w-24">SKOR V_I</th>
                         <th class="text-center w-40">KEPUTUSAN KUOTA</th>

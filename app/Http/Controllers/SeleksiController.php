@@ -133,21 +133,7 @@ class SeleksiController extends Controller
                 $nilaiRaw = $validated['nilai'][$k->id] ?? null;
                 $subKriteriaId = $validated['sub_kriteria'][$k->id] ?? null;
 
-                // Bersihkan nilai angka jika ada format ribuan / string / mata uang
-                if (is_string($nilaiRaw)) {
-                    $nilaiClean = trim(str_replace(['Rp', 'rp', ' '], '', $nilaiRaw));
-                    // Jika ada koma sebagai pemisah desimal (misal 85,50)
-                    if (str_contains($nilaiClean, ',') && ! str_contains($nilaiClean, '.')) {
-                        $nilaiClean = str_replace(',', '.', $nilaiClean);
-                    } else {
-                        // Hilangkan titik ribuan jika ada (misal 2.500.000)
-                        $nilaiClean = str_replace('.', '', $nilaiClean);
-                        $nilaiClean = str_replace(',', '.', $nilaiClean);
-                    }
-                    $nilaiFloat = floatval($nilaiClean);
-                } else {
-                    $nilaiFloat = floatval($nilaiRaw);
-                }
+                $nilaiFloat = $this->parseNilaiKriteria($nilaiRaw, $k);
 
                 // Jika sub_kriteria_id belum diset tetapi kriteria memiliki sub-kriteria, cari berdasarkan nilai
                 if (! $subKriteriaId && $k->subKriterias()->exists()) {
@@ -225,6 +211,7 @@ class SeleksiController extends Controller
                 $firstCol = strtolower(trim($cols[0] ?? ''));
                 if (! $headerSkipped && (str_contains($firstCol, 'nisn') || str_contains($firstCol, 'nim') || str_contains($firstCol, 'no'))) {
                     $headerSkipped = true;
+
                     continue;
                 }
 
@@ -252,7 +239,8 @@ class SeleksiController extends Controller
                 );
 
                 // Default skor jika index 4..8 disediakan
-                $c1 = isset($cols[4]) ? floatval(str_replace(['Rp', '.', ' '], '', $cols[4])) : 85.0;
+                $c1Raw = isset($cols[4]) ? trim($cols[4]) : '85.0';
+                $c1 = floatval(str_replace(',', '.', str_ireplace(['Rp', ' '], '', $c1Raw)));
                 $c2 = isset($cols[5]) ? floatval(str_replace(['Rp', '.', ' '], '', $cols[5])) : 2500000;
                 $c3 = isset($cols[6]) ? intval($cols[6]) : 3;
                 $c4 = isset($cols[7]) ? intval($cols[7]) : 4;
@@ -304,7 +292,7 @@ class SeleksiController extends Controller
 
         $callback = function () {
             $file = fopen('php://output', 'w');
-            fputs($file, "\xEF\xBB\xBF"); // UTF-8 BOM
+            fwrite($file, "\xEF\xBB\xBF"); // UTF-8 BOM
             fputcsv($file, ['NISN', 'Nama Siswa', 'Jurusan SMK', 'Kelas', 'C1_Nilai_Rapor', 'C2_Penghasilan_Ortu', 'C3_Tanggungan', 'C4_Paket_Ekskul', 'C5_Ketidakhadiran_Hari']);
             fputcsv($file, ['0081234561', 'Budi Santoso', 'Rekayasa Perangkat Lunak', 'XII RPL 1', '89.50', '2000000', '3', '4', '0']);
             fputcsv($file, ['0081234562', 'Siti Rahmawati', 'Teknik Komputer & Jaringan', 'XII TKJ 2', '92.00', '1500000', '4', '5', '1']);
@@ -354,5 +342,45 @@ class SeleksiController extends Controller
             ->get();
 
         return view('seleksi.export', compact('periode', 'kriterias', 'lolosCalon', 'cadanganCalon'));
+    }
+
+    /**
+     * Parsing nilai kriteria secara kontekstual:
+     * - Kriteria berskala kecil/desimal (misal C1 Nilai Akademik 0-100): koma atau titik adalah desimal.
+     * - Kriteria mata uang/nominal besar (misal C2 Penghasilan Orang Tua): titik dapat berupa pemisah ribuan.
+     */
+    private function parseNilaiKriteria(mixed $nilaiRaw, Kriteria $kriteria): float
+    {
+        if (is_numeric($nilaiRaw)) {
+            return floatval($nilaiRaw);
+        }
+
+        if (! is_string($nilaiRaw) || trim($nilaiRaw) === '') {
+            return 0.0;
+        }
+
+        $clean = trim(str_ireplace(['Rp', ' '], '', $nilaiRaw));
+
+        // Untuk kriteria nilai rapor / akademik (skala 0 - 100): titik maupun koma selalu merupakan pemisah desimal
+        $isSkalaKecil = ($kriteria->kode === 'C1')
+            || (($kriteria->max_val ?? 100) <= 100 && ! str_contains(strtolower($kriteria->satuan ?? ''), 'rupiah'));
+
+        if ($isSkalaKecil) {
+            $clean = str_replace(',', '.', $clean);
+
+            return floatval($clean);
+        }
+
+        // Untuk kriteria nominal besar / mata uang (misal C2 Penghasilan Orang Tua)
+        if (str_contains($clean, '.') && str_contains($clean, ',')) {
+            $clean = str_replace('.', '', $clean);
+            $clean = str_replace(',', '.', $clean);
+        } elseif (substr_count($clean, '.') > 1) {
+            $clean = str_replace('.', '', $clean);
+        } elseif (str_contains($clean, ',')) {
+            $clean = str_replace(',', '.', $clean);
+        }
+
+        return floatval($clean);
     }
 }
