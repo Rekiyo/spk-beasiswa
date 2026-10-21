@@ -12,6 +12,7 @@ class KriteriaController extends Controller
     public function index(Periode $periode)
     {
         $kriterias = $periode->kriterias;
+
         return view('kriteria.index', compact('periode', 'kriterias'));
     }
 
@@ -20,6 +21,7 @@ class KriteriaController extends Controller
         if ($periode->isTerkunci()) {
             return $this->tolakTerkunci($periode);
         }
+
         return view('kriteria.create', compact('periode'));
     }
 
@@ -30,11 +32,11 @@ class KriteriaController extends Controller
         }
 
         $data = $request->validate([
-            'kode'    => [
+            'kode' => [
                 'required', 'string', 'max:10',
                 Rule::unique('kriterias')->where('periode_id', $periode->id),
             ],
-            'nama'    => 'required|string|max:255',
+            'nama' => 'required|string|max:255',
             'atribut' => 'required|in:benefit,cost',
             'tipe_input' => 'required|in:angka,pilihan',
         ]);
