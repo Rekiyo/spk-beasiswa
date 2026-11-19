@@ -398,4 +398,34 @@ class SpkFlowTest extends TestCase
 
         $this->assertDatabaseMissing('calon_penerimas', ['id' => $calon->id]);
     }
+
+    public function test_bulk_destroy_deletes_selected_students_and_recalculates(): void
+    {
+        $this->seed(SpkDemoSeeder::class);
+        $periode = Periode::whereHas('calonPenerimas')->first();
+        $this->assertNotNull($periode);
+
+        $initialCount = $periode->calonPenerimas()->count();
+        $this->assertGreaterThanOrEqual(3, $initialCount);
+
+        $calonToDelete = $periode->calonPenerimas()->take(2)->get();
+        $deleteIds = $calonToDelete->pluck('id')->all();
+
+        $response = $this->delete(route('periode.seleksi.bulk-destroy', $periode), [
+            'ids' => $deleteIds,
+        ]);
+        $response->assertRedirect();
+        $response->assertSessionHas('sukses', 'Berhasil menghapus 2 data siswa dari daftar seleksi.');
+
+        foreach ($deleteIds as $id) {
+            $this->assertDatabaseMissing('calon_penerimas', ['id' => $id]);
+        }
+
+        $remainingCount = $periode->calonPenerimas()->count();
+        $this->assertSame($initialCount - 2, $remainingCount);
+
+        // Pastikan peringkat SAW tetap valid (ranking 1 dimulai dari siswa terbaik yang tersisa)
+        $topRemaining = $periode->calonPenerimas()->orderBy('ranking')->first();
+        $this->assertEquals(1, $topRemaining->ranking);
+    }
 }

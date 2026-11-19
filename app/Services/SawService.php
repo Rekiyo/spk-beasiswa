@@ -35,11 +35,18 @@ class SawService
         }
 
         // 1. Ekstrak bobot kriteria (W)
+        // Bobot AHP dibulatkan 2 desimal (persen bulat, mis. 0.40, 0.24, 0.16, 0.11, 0.09)
+        // sesuai bobot yang dipakai pada perhitungan manual, lalu dinormalisasi wj = wj / Σwj.
+        $roundedWeights = [];
+        foreach ($kriterias as $k) {
+            $roundedWeights[$k->id] = round(floatval($k->bobot), 2);
+        }
+
         $weights = [];
-        $totalWeight = $kriterias->sum(fn ($k) => floatval($k->bobot));
+        $totalWeight = array_sum($roundedWeights);
         foreach ($kriterias as $k) {
             if ($totalWeight > 0) {
-                $weights[$k->id] = floatval($k->bobot) / $totalWeight;
+                $weights[$k->id] = $roundedWeights[$k->id] / $totalWeight;
             } else {
                 $weights[$k->id] = 1.0 / $kriterias->count();
             }
@@ -64,11 +71,14 @@ class SawService
                 $values[] = $matrixX[$c->id][$k->id] ?? 0.0;
             }
             $maxVal = ! empty($values) ? max($values) : 1.0;
-            $minVal = ! empty($values) ? min(array_filter($values, fn ($v) => $v > 0) ?: [1.0]) : 1.0;
+            // Min diambil dari nilai positif agar rumus cost (min / x) tidak menghasilkan 0 semua
+            // ketika ada nilai 0 (mis. ketidakhadiran 0 hari)
+            $positiveValues = array_filter($values, fn ($v) => $v > 0);
+            $minVal = ! empty($positiveValues) ? min($positiveValues) : 1.0;
 
             $minMax[$k->id] = [
                 'max' => $maxVal > 0 ? $maxVal : 1.0,
-                'min' => $minVal > 0 ? $minVal : 1.0,
+                'min' => $minVal,
                 'atribut' => strtolower($k->atribut),
             ];
         }
@@ -85,18 +95,16 @@ class SawService
                 $maxVal = $minMax[$k->id]['max'];
                 $minVal = $minMax[$k->id]['min'];
 
+                // Rumus SAW standar: benefit r = x / max, cost r = min / x
                 if ($attrib === 'benefit') {
                     $r = $maxVal > 0 ? ($x / $maxVal) : 0.0;
-                } else { // cost
-                    if ($x <= 0) {
-                        // Ketidakhadiran 0 hari atau penghasilan 0 adalah nilai terbaik untuk kriteria cost
-                        $r = 1.0;
-                    } else {
-                        $r = $minVal > 0 ? ($minVal / $x) : (1.0 / (1.0 + $x));
-                    }
+                } else {
+                    // Nilai 0 pada kriteria cost adalah nilai terbaik
+                    $r = $x > 0 ? ($minVal / $x) : 1.0;
                 }
 
-                $matrixR[$c->id][$k->id] = round(min(1.0, max(0.0, $r)), 4);
+                // Tidak dibulatkan agar V_i sama dengan perhitungan manual (pembulatan hanya pada hasil akhir)
+                $matrixR[$c->id][$k->id] = $r;
                 $preferenceVi += $weights[$k->id] * $matrixR[$c->id][$k->id];
             }
 

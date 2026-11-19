@@ -326,6 +326,38 @@ class SeleksiController extends Controller
     }
 
     /**
+     * Hapus beberapa calon penerima sekaligus (bulk delete)
+     */
+    public function bulkDestroy(Request $request, Periode $periode)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ]);
+
+        $ids = $validated['ids'];
+        $calonList = CalonPenerima::where('periode_id', $periode->id)
+            ->whereIn('id', $ids)
+            ->get();
+
+        $count = $calonList->count();
+        if ($count === 0) {
+            return back()->with('gagal', 'Tidak ada data siswa terpilih yang valid untuk dihapus.');
+        }
+
+        DB::transaction(function () use ($periode, $calonList) {
+            $calonIds = $calonList->pluck('id');
+            Penilaian::whereIn('calon_penerima_id', $calonIds)->delete();
+            CalonPenerima::whereIn('id', $calonIds)->delete();
+
+            // Hitung ulang SAW setelah data dihapus
+            $this->sawService->hitung($periode);
+        });
+
+        return back()->with('sukses', "Berhasil menghapus {$count} data siswa dari daftar seleksi.");
+    }
+
+    /**
      * Export Laporan Keputusan SK Beasiswa
      */
     public function exportSk(Periode $periode)

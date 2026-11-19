@@ -299,7 +299,7 @@ class PeriodeController extends Controller
                             ['label' => 'Paket 2: Komputer dan Paskibra', 'nilai' => 2],
                             ['label' => 'Paket 3: Pramuka dan Paskibra', 'nilai' => 3],
                             ['label' => 'Paket 4: Olahraga', 'nilai' => 4],
-                            ['label' => 'Paket 5: Palang Merah / PMR & Organisasi', 'nilai' => 5],
+                            ['label' => 'Paket 5: Pakata', 'nilai' => 5],
                         ]);
                     } else {
                         $k->subKriterias()->createMany([

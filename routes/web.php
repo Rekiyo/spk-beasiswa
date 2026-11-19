@@ -47,6 +47,9 @@ Route::post('periode/{periode}/seleksi/import', [SeleksiController::class, 'impo
 Route::get('periode/{periode}/seleksi/template-csv', [SeleksiController::class, 'templateCsv'])
     ->name('periode.seleksi.template');
 
+Route::delete('periode/{periode}/seleksi/bulk-destroy', [SeleksiController::class, 'bulkDestroy'])
+    ->name('periode.seleksi.bulk-destroy');
+
 Route::delete('periode/{periode}/seleksi/{calonPenerima}', [SeleksiController::class, 'destroy'])
     ->name('periode.seleksi.destroy');
 

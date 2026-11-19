@@ -198,9 +198,9 @@
             </span>
 
             <div>
-                <a href="#">Kebijakan Privasi</a>
+                <a href="javascript:void(0)" onclick="openLegalModal('privacy')">Kebijakan Privasi</a>
                 <span>•</span>
-                <a href="#">Syarat & Ketentuan</a>
+                <a href="javascript:void(0)" onclick="openLegalModal('terms')">Syarat &amp; Ketentuan</a>
             </div>
 
         </div>
@@ -230,6 +230,126 @@
                     Ya, Hapus Data
                 </button>
             </div>
+        </div>
+    </div>
+
+    {{-- Global Modal: Syarat & Ketentuan dan Kebijakan Privasi --}}
+    <div id="appLegalModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(17,24,39,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:16px;">
+        <div style="background:#fff; border-radius:18px; max-width:680px; width:100%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3); overflow:hidden; border:1px solid #e5e7eb; display:flex; flex-direction:column; max-height:90vh;">
+            
+            {{-- Modal Header --}}
+            <div style="padding:20px 24px 14px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; border-radius:10px; background:#fdf2f8; color:#be185d; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </div>
+                    <div>
+                        <h3 id="legalModalTitle" style="margin:0; font-size:16px; font-weight:800; color:#111827;">Informasi Legalitas &amp; Ketentuan</h3>
+                        <span style="font-size:12px; color:#6b7280;">SPK Beasiswa Prestasi Siswa SMK Negeri 1 Prestasi</span>
+                    </div>
+                </div>
+                <button type="button" onclick="closeLegalModal()" style="background:#f3f4f6; border:none; width:32px; height:32px; border-radius:8px; font-size:16px; color:#4b5563; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">✕</button>
+            </div>
+
+            {{-- Tab Switcher --}}
+            <div style="display:flex; padding:0 24px; background:#f8fafc; border-bottom:1px solid #e2e8f0; gap:8px;">
+                <button type="button" id="tabBtnTerms" onclick="switchLegalTab('terms')" style="padding:12px 18px; font-size:13px; font-weight:700; color:#be185d; background:none; border:none; border-bottom:2px solid #be185d; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                    Syarat &amp; Ketentuan
+                </button>
+                <button type="button" id="tabBtnPrivacy" onclick="switchLegalTab('privacy')" style="padding:12px 18px; font-size:13px; font-weight:600; color:#64748b; background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Kebijakan Privasi
+                </button>
+            </div>
+
+            {{-- Modal Body (Scrollable) --}}
+            <div style="padding:22px 24px; overflow-y:auto; flex:1; font-size:12.5px; line-height:1.65; color:#374151;">
+                
+                {{-- KONTEN SYARAT & KETENTUAN --}}
+                <div id="legalContentTerms">
+                    <div style="background:#fdf2f8; border:1px solid #fbcfe8; border-radius:10px; padding:12px 16px; margin-bottom:18px;">
+                        <strong style="color:#9d174d; display:block; font-size:13px; margin-bottom:2px;">Ketentuan Umum Program Beasiswa Prestasi</strong>
+                        <span style="color:#831843; font-size:11.5px;">Sistem ini mengimplementasikan metode <strong>Analytical Hierarchy Process (AHP)</strong> untuk pembobotan kriteria dan <strong>Simple Additive Weighting (SAW)</strong> untuk perankingan preferensi calon penerima beasiswa.</span>
+                    </div>
+
+                    <h4 style="font-size:13px; font-weight:800; color:#111827; margin:0 0 8px;">1. Kriteria &amp; Bobot Penilaian (5 Kriteria Standar)</h4>
+                    <p style="margin:0 0 12px; color:#4b5563;">Setiap calon penerima dinilai secara komprehensif berdasarkan 5 kriteria acuan seleksi:</p>
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:18px;">
+                        <div style="display:flex; gap:10px; padding:8px 12px; background:#f9fafb; border-radius:8px; border:1px solid #f3f4f6;">
+                            <span style="font-weight:700; color:#be185d; min-width:28px;">C1</span>
+                            <div><strong>Prestasi Akademik (Benefit, W: 40%)</strong>: Nilai rata-rata rapor semester siswa (skala 0–100). Makin tinggi nilai, makin besar peluang kelulusan.</div>
+                        </div>
+                        <div style="display:flex; gap:10px; padding:8px 12px; background:#f9fafb; border-radius:8px; border:1px solid #f3f4f6;">
+                            <span style="font-weight:700; color:#be185d; min-width:28px;">C2</span>
+                            <div><strong>Penghasilan Orang Tua (Cost, W: 24%)</strong>: Total pendapatan kotor orang tua per bulan. Siswa dari keluarga dengan kondisi ekonomi lebih membutuhkan mendapatkan prioritas lebih tinggi.</div>
+                        </div>
+                        <div style="display:flex; gap:10px; padding:8px 12px; background:#f9fafb; border-radius:8px; border:1px solid #f3f4f6;">
+                            <span style="font-weight:700; color:#be185d; min-width:28px;">C3</span>
+                            <div><strong>Tanggungan Orang Tua (Benefit, W: 16%)</strong>: Jumlah anak/anggota keluarga yang menjadi tanggungan hidup orang tua. Makin banyak tanggungan, makin diprioritaskan.</div>
+                        </div>
+                        <div style="display:flex; gap:10px; padding:8px 12px; background:#f9fafb; border-radius:8px; border:1px solid #f3f4f6;">
+                            <span style="font-weight:700; color:#be185d; min-width:28px;">C4</span>
+                            <div><strong>Ekstrakurikuler (Cost, W: 11%)</strong>: Partisipasi siswa pada kegiatan organisasi/ekskul sekolah. Kategori paket ekskul aktif (Paket 1: Pramuka, Komputer, Paskibra) merupakan prioritas utama.</div>
+                        </div>
+                        <div style="display:flex; gap:10px; padding:8px 12px; background:#f9fafb; border-radius:8px; border:1px solid #f3f4f6;">
+                            <span style="font-weight:700; color:#be185d; min-width:28px;">C5</span>
+                            <div><strong>Kedisiplinan &amp; Ketidakhadiran (Cost, W: 9%)</strong>: Rekapitulasi jumlah hari alpa/tanpa keterangan. Siswa dengan tingkat absensi 0 hari (sangat disiplin) mendapatkan nilai normalisasi maksimal.</div>
+                        </div>
+                    </div>
+
+                    <h4 style="font-size:13px; font-weight:800; color:#111827; margin:0 0 8px;">2. Mekanisme Kuota &amp; Status Kelulusan</h4>
+                    <ul style="margin:0 0 16px; padding-left:20px; color:#4b5563;">
+                        <li style="margin-bottom:6px;"><strong>Lolos Kuota</strong>: Siswa dengan nilai preferensi $V_i$ tertinggi dari peringkat 1 hingga batas kuota penerima yang ditetapkan pada periode berjalan.</li>
+                        <li style="margin-bottom:6px;"><strong>Cadangan</strong>: Siswa pada peringkat berikutnya (alokasi cadangan sama dengan jumlah kuota utama) yang berpeluang naik apabila siswa lolos utama berhalangan atau mengundurkan diri.</li>
+                        <li style="margin-bottom:6px;"><strong>Tidak Lolos</strong>: Siswa yang berada di luar batas kuota penerima dan cadangan.</li>
+                        <li style="margin-bottom:6px;"><strong>Aturan Nilai Kembar (*Tie-Breaker*)</strong>: Apabila terdapat skor akhir $V_i$ yang persis sama, penentuan peringkat diprioritaskan secara berjenjang: (1) Nilai Rapor C1 tertinggi, (2) Penghasilan C2 terendah, (3) Alpa C5 terendah, dan (4) Nomor urut pendaftaran.</li>
+                    </ul>
+
+                    <h4 style="font-size:13px; font-weight:800; color:#111827; margin:0 0 8px;">3. Keputusan Akhir &amp; Pengesahan</h4>
+                    <p style="margin:0; color:#4b5563;">Hasil perangkingan yang dihitung oleh sistem SPK berfungsi sebagai instrumen pendukung keputusan (*decision support*) yang objektif dan transparan. Penetapan akhir penerima beasiswa tetap disahkan secara hukum melalui <strong>Surat Keputusan (SK) Resmi Kepala Sekolah</strong>.</p>
+                </div>
+
+                {{-- KONTEN KEBIJAKAN PRIVASI --}}
+                <div id="legalContentPrivacy" style="display:none;">
+                    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:18px;">
+                        <strong style="color:#1e40af; display:block; font-size:13px; margin-bottom:2px;">Komitmen Perlindungan Data Siswa</strong>
+                        <span style="color:#1e3a8a; font-size:11.5px;">Kesiswaan SMK Negeri 1 Prestasi berkomitmen menjaga kerahasiaan seluruh data pribadi, akademik, dan ekonomi calon penerima beasiswa.</span>
+                    </div>
+
+                    <h4 style="font-size:13px; font-weight:800; color:#111827; margin:0 0 8px;">1. Ruang Lingkup Data yang Diproses</h4>
+                    <p style="margin:0 0 10px; color:#4b5563;">Sistem ini menghimpun dan memproses data calon siswa berupa:</p>
+                    <ul style="margin:0 0 16px; padding-left:20px; color:#4b5563;">
+                        <li style="margin-bottom:4px;"><strong>Identitas Akademik</strong>: Nama Lengkap Siswa, Nomor Induk Siswa Nasional (NISN), Program Studi/Jurusan SMK, dan Kelas.</li>
+                        <li style="margin-bottom:4px;"><strong>Parameter Kriteria Seleksi</strong>: Nilai rapor siswa, slip penghasilan orang tua/wali, data kartu keluarga (jumlah tanggungan), rekap partisipasi ekskul, dan catatan presensi alpa.</li>
+                    </ul>
+
+                    <h4 style="font-size:13px; font-weight:800; color:#111827; margin:0 0 8px;">2. Tujuan Penggunaan Data</h4>
+                    <p style="margin:0 0 16px; color:#4b5563;">Data yang diinputkan hanya digunakan untuk keperluan kalkulasi normalisasi matriks SAW, penentuan perankingan kelayakan beasiswa, pembuatan arsip keputusan beasiswa, dan penerbitan berkas lampiran SK resmi sekolah.</p>
+
+                    <h4 style="font-size:13px; font-weight:800; color:#111827; margin:0 0 8px;">3. Batasan Akses &amp; Keamanan Data</h4>
+                    <ul style="margin:0 0 16px; padding-left:20px; color:#4b5563;">
+                        <li style="margin-bottom:4px;">Data tersimpan secara aman di dalam infrastruktur basis data sistem SPK sekolah.</li>
+                        <li style="margin-bottom:4px;">Hak akses pengelolaan data dibatasi hanya untuk Panitia Seleksi Beasiswa, Tim Kesiswaan, dan Administrator Sekolah yang terotorisasi.</li>
+                        <li style="margin-bottom:4px;">Data siswa tidak akan pernah diperjualbelikan, disebarluaskan, atau diserahkan kepada pihak ketiga tanpa izin resmi dari sekolah dan orang tua/wali murid.</li>
+                    </ul>
+
+                    <h4 style="font-size:13px; font-weight:800; color:#111827; margin:0 0 8px;">4. Hak Perbaikan Data</h4>
+                    <p style="margin:0; color:#4b5563;">Siswa dan orang tua/wali murid berhak mengonfirmasi dan meminta perbaikan data apabila ditemukan ketidaksesuaian input nilai atau berkas selama periode pendaftaran seleksi beasiswa masih dalam status berlangsung (belum ditutup/difinalisasi).</p>
+                </div>
+
+            </div>
+
+            {{-- Modal Footer --}}
+            <div style="padding:14px 24px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <span style="font-size:11.5px; color:#64748b;">
+                    Terakhir diperbarui: <strong>Tahun Ajaran 2026/2027</strong> • SMK Negeri 1 Prestasi
+                </span>
+                <button type="button" onclick="closeLegalModal()" style="padding:8px 20px; font-size:13px; font-weight:700; color:#fff; background:#be185d; border:none; border-radius:8px; cursor:pointer; box-shadow:0 1px 2px rgba(190,24,93,0.2);">
+                    Tutup
+                </button>
+            </div>
+
         </div>
     </div>
 
@@ -273,6 +393,64 @@
                 }
             });
         };
+
+        window.openLegalModal = function(tab = 'terms') {
+            const modal = document.getElementById('appLegalModal');
+            if (!modal) return;
+            switchLegalTab(tab);
+            modal.style.display = 'flex';
+        };
+
+        window.closeLegalModal = function() {
+            const modal = document.getElementById('appLegalModal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.switchLegalTab = function(tabName) {
+            const tabBtnTerms = document.getElementById('tabBtnTerms');
+            const tabBtnPrivacy = document.getElementById('tabBtnPrivacy');
+            const contentTerms = document.getElementById('legalContentTerms');
+            const contentPrivacy = document.getElementById('legalContentPrivacy');
+            const modalTitle = document.getElementById('legalModalTitle');
+
+            if (tabName === 'privacy') {
+                if (tabBtnPrivacy) {
+                    tabBtnPrivacy.style.color = '#be185d';
+                    tabBtnPrivacy.style.borderBottomColor = '#be185d';
+                    tabBtnPrivacy.style.fontWeight = '700';
+                }
+                if (tabBtnTerms) {
+                    tabBtnTerms.style.color = '#64748b';
+                    tabBtnTerms.style.borderBottomColor = 'transparent';
+                    tabBtnTerms.style.fontWeight = '600';
+                }
+                if (contentTerms) contentTerms.style.display = 'none';
+                if (contentPrivacy) contentPrivacy.style.display = 'block';
+                if (modalTitle) modalTitle.textContent = 'Kebijakan Privasi Siswa';
+            } else {
+                if (tabBtnTerms) {
+                    tabBtnTerms.style.color = '#be185d';
+                    tabBtnTerms.style.borderBottomColor = '#be185d';
+                    tabBtnTerms.style.fontWeight = '700';
+                }
+                if (tabBtnPrivacy) {
+                    tabBtnPrivacy.style.color = '#64748b';
+                    tabBtnPrivacy.style.borderBottomColor = 'transparent';
+                    tabBtnPrivacy.style.fontWeight = '600';
+                }
+                if (contentTerms) contentTerms.style.display = 'block';
+                if (contentPrivacy) contentPrivacy.style.display = 'none';
+                if (modalTitle) modalTitle.textContent = 'Syarat & Ketentuan Seleksi Beasiswa';
+            }
+        };
+
+        document.getElementById('appLegalModal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeLegalModal();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLegalModal();
+        });
 
         window.showGlobalToast = function(message, type = 'success') {
             const shelf = document.getElementById('appGlobalToastShelf');

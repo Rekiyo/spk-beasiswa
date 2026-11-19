@@ -287,7 +287,7 @@
 
             <div class="section-footer">
                 <div class="footer-info text-success">
-                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <svg class="info-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                     <span>5 Kriteria siap dikomputasikan pada matriks perbandingan berpasangan AHP.</span>
                 </div>
                 <button type="button" class="btn btn-primary" onclick="window.scrollTo({top: document.getElementById('sectionAhp').offsetTop - 20, behavior: 'smooth'})">
@@ -319,7 +319,7 @@
                 <div class="saaty-guide-panel">
                     <div class="saaty-guide-header">
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            <svg class="info-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                             <span class="font-bold text-gray text-11">Panduan Skala Saaty Perbandingan Berpasangan (1 – 9)</span>
                         </div>
                         <span class="text-gray text-11 font-mono">Principle AHP: A(i, j) = 1 / A(j, i)</span>

@@ -118,6 +118,10 @@
 .step-badge { font-size: 11px; font-weight: 600; background: #f3f4f6; color: #4b5563; padding: 4px 10px; border-radius: 6px; border: 1px solid #e5e7eb; }
 .form-body { padding: 24px; }
 .section-footer { padding: 16px 24px; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: #fafafa; }
+.footer-info { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #4b5563; }
+.info-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.text-success { color: #059669; }
+.text-success .info-icon { color: #059669; }
 
 /* In-use Banner Alert */
 .in-use-alert {

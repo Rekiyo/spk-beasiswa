@@ -103,7 +103,7 @@ return new class extends Migration
                         'min_val' => $k->min_val,
                         'max_val' => $k->max_val,
                         'satuan' => $k->satuan,
-                        'bobot' => $k->bobot,
+                        'bobot' => $k->bobot ?? 0.200000,
                         'urutan' => $urutan++,
                         'created_at' => $now,
                         'updated_at' => $now,

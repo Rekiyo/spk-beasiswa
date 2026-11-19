@@ -58,30 +58,22 @@ class SpkDemoSeeder extends Seeder
         ]);
 
         $masterKriteriasData = [
-            ['kode' => 'C1', 'nama' => 'Nilai Akademik', 'atribut' => 'benefit', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 100, 'satuan' => '/ 100', 'rentang' => '0 – 100 (Nilai Rapor Siswa SMK)', 'bobot' => 0.397000, 'urutan' => 1],
-            ['kode' => 'C2', 'nama' => 'Penghasilan Orang Tua', 'atribut' => 'cost', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 10000000, 'satuan' => 'Rp', 'rentang' => 'Rp 0 s/d > Rp 10.000.000', 'bobot' => 0.242000, 'urutan' => 2],
-            ['kode' => 'C3', 'nama' => 'Tanggungan Orang Tua', 'atribut' => 'benefit', 'tipe_input' => 'pilihan', 'min_val' => 1, 'max_val' => 5, 'satuan' => 'Orang', 'rentang' => '1 s/d > 4 Orang Tanggungan', 'bobot' => 0.157000, 'urutan' => 3],
-            ['kode' => 'C4', 'nama' => 'Ekstrakurikuler', 'atribut' => 'benefit', 'tipe_input' => 'pilihan', 'min_val' => 1, 'max_val' => 5, 'satuan' => 'Paket', 'rentang' => 'Paket 1 s/d 5 (Pramuka, Komputer, Paskibra, Olahraga, PMR)', 'bobot' => 0.109000, 'urutan' => 4],
-            ['kode' => 'C5', 'nama' => 'Ketidakhadiran', 'atribut' => 'cost', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 30, 'satuan' => 'Hari', 'rentang' => '0 – > 5 Hari Alpa', 'bobot' => 0.094000, 'urutan' => 5],
+            ['kode' => 'C1', 'nama' => 'Prestasi Akademik', 'atribut' => 'benefit', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 100, 'satuan' => '/ 100', 'rentang' => '0 – 100 (Nilai Rapor Siswa)', 'bobot' => 0.400000, 'urutan' => 1],
+            ['kode' => 'C2', 'nama' => 'Penghasilan Orang Tua', 'atribut' => 'cost', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 10000000, 'satuan' => 'Rp', 'rentang' => 'Rp 0 s/d > Rp 10.000.000', 'bobot' => 0.240000, 'urutan' => 2],
+            ['kode' => 'C3', 'nama' => 'Tanggungan Anak', 'atribut' => 'benefit', 'tipe_input' => 'angka', 'min_val' => 1, 'max_val' => 10, 'satuan' => 'Orang', 'rentang' => '1 s/d 10 Orang Anak', 'bobot' => 0.160000, 'urutan' => 3],
+            ['kode' => 'C4', 'nama' => 'Ekstrakurikuler', 'atribut' => 'cost', 'tipe_input' => 'pilihan', 'min_val' => 1, 'max_val' => 5, 'satuan' => 'Paket', 'rentang' => 'Paket 1 s/d 5 (Pramuka, Komputer, Paskibra, Olahraga, Pakata)', 'bobot' => 0.110000, 'urutan' => 4],
+            ['kode' => 'C5', 'nama' => 'Ketidakhadiran', 'atribut' => 'cost', 'tipe_input' => 'angka', 'min_val' => 0, 'max_val' => 30, 'satuan' => 'Hari', 'rentang' => '0 – 10 Hari Alpa', 'bobot' => 0.090000, 'urutan' => 5],
         ];
 
         foreach ($masterKriteriasData as $mkData) {
             $mk = $masterKonfigurasi->kriterias()->create($mkData);
-            if ($mkData['kode'] === 'C3') {
-                $mk->subKriterias()->createMany([
-                    ['label' => '1 Orang Tanggungan', 'nilai' => 1, 'urutan' => 1],
-                    ['label' => '2 Orang Tanggungan', 'nilai' => 2, 'urutan' => 2],
-                    ['label' => '3 Orang Tanggungan', 'nilai' => 3, 'urutan' => 3],
-                    ['label' => '4 Orang Tanggungan', 'nilai' => 4, 'urutan' => 4],
-                    ['label' => '> 4 Orang Tanggungan', 'nilai' => 5, 'urutan' => 5],
-                ]);
-            } elseif ($mkData['kode'] === 'C4') {
+            if ($mkData['kode'] === 'C4') {
                 $mk->subKriterias()->createMany([
                     ['label' => 'Paket 1: Pramuka, Komputer, dan Paskibra', 'nilai' => 1, 'urutan' => 1],
                     ['label' => 'Paket 2: Komputer dan Paskibra', 'nilai' => 2, 'urutan' => 2],
                     ['label' => 'Paket 3: Pramuka dan Paskibra', 'nilai' => 3, 'urutan' => 3],
                     ['label' => 'Paket 4: Olahraga', 'nilai' => 4, 'urutan' => 4],
-                    ['label' => 'Paket 5: Palang Merah / PMR & Organisasi', 'nilai' => 5, 'urutan' => 5],
+                    ['label' => 'Paket 5: Pakata', 'nilai' => 5, 'urutan' => 5],
                 ]);
             }
         }
@@ -92,7 +84,7 @@ class SpkDemoSeeder extends Seeder
         $periodeAktif = Periode::create([
             'nama' => 'TA 2026/2027 Ganjil – SMK Negeri 1 Prestasi',
             'tahun' => 2026,
-            'kuota' => 5,
+            'kuota' => 12,
             'ambang_batas' => SawService::AMBANG_BATAS,
             'konfigurasi_seleksi_id' => $masterKonfigurasi->id,
             'tanggal_mulai' => Carbon::create(2026, 8, 1),
@@ -138,42 +130,42 @@ class SpkDemoSeeder extends Seeder
      */
     private function setupKriteriaDanSiswa(Periode $periode, SawService $sawService, bool $isPeriodeUtama): void
     {
-        // 5 Kriteria Baku SMK
+        // 5 Kriteria Baku Sesuai Dokumen Perhitungan Manual SPK
         $kriteriasData = [
             [
                 'kode' => 'C1',
-                'nama' => 'Nilai Akademik',
+                'nama' => 'Prestasi Akademik',
                 'atribut' => 'benefit',
                 'tipe_input' => 'angka',
-                'bobot' => 0.442000,
+                'bobot' => 0.400000,
             ],
             [
                 'kode' => 'C2',
                 'nama' => 'Penghasilan Orang Tua',
                 'atribut' => 'cost',
                 'tipe_input' => 'angka',
-                'bobot' => 0.243000,
+                'bobot' => 0.240000,
             ],
             [
                 'kode' => 'C3',
-                'nama' => 'Tanggungan Orang Tua',
+                'nama' => 'Tanggungan Anak',
                 'atribut' => 'benefit',
-                'tipe_input' => 'pilihan',
-                'bobot' => 0.163000,
+                'tipe_input' => 'angka',
+                'bobot' => 0.160000,
             ],
             [
                 'kode' => 'C4',
                 'nama' => 'Ekstrakurikuler',
-                'atribut' => 'benefit',
+                'atribut' => 'cost',
                 'tipe_input' => 'pilihan',
-                'bobot' => 0.098000,
+                'bobot' => 0.110000,
             ],
             [
                 'kode' => 'C5',
                 'nama' => 'Ketidakhadiran',
                 'atribut' => 'cost',
                 'tipe_input' => 'angka',
-                'bobot' => 0.054000,
+                'bobot' => 0.090000,
             ],
         ];
 
@@ -190,32 +182,13 @@ class SpkDemoSeeder extends Seeder
             $kModels[$kData['kode']] = $k;
         }
 
-        // Sub Kriteria C3 (Tanggungan Orang Tua: 1 sampai > 4)
-        $subKriteriaC3 = [
-            ['label' => '1 Orang Tanggungan', 'nilai' => 1],
-            ['label' => '2 Orang Tanggungan', 'nilai' => 2],
-            ['label' => '3 Orang Tanggungan', 'nilai' => 3],
-            ['label' => '4 Orang Tanggungan', 'nilai' => 4],
-            ['label' => '> 4 Orang Tanggungan', 'nilai' => 5],
-        ];
-        $subC3Map = [];
-        foreach ($subKriteriaC3 as $sub) {
-            $subModel = SubKriteria::create([
-                'kriteria_id' => $kModels['C3']->id,
-                'label' => $sub['label'],
-                'nilai' => $sub['nilai'],
-            ]);
-            $subC3Map[$sub['nilai']] = $subModel;
-        }
-
-        // Sub Kriteria C4: Menu Paket Ekstrakurikuler Sesuai Ketentuan 6
-        // Paket 1 = 1, Paket 2 = 2, Paket 3 = 3, Paket 4 = 4, Paket 5 = 5
+        // Sub Kriteria C4: Menu Paket Ekstrakurikuler
         $subKriteriaC4 = [
             ['label' => 'Paket 1: Pramuka, Komputer, dan Paskibra', 'nilai' => 1],
             ['label' => 'Paket 2: Komputer dan Paskibra', 'nilai' => 2],
             ['label' => 'Paket 3: Pramuka dan Paskibra', 'nilai' => 3],
             ['label' => 'Paket 4: Olahraga', 'nilai' => 4],
-            ['label' => 'Paket 5: Palang Merah / PMR & Organisasi', 'nilai' => 5],
+            ['label' => 'Paket 5: Pakata', 'nilai' => 5],
         ];
         $subC4Map = [];
         foreach ($subKriteriaC4 as $sub) {
@@ -227,24 +200,23 @@ class SpkDemoSeeder extends Seeder
             $subC4Map[$sub['nilai']] = $subModel;
         }
 
-        // Data Calon Penerima Siswa SMK Indonesia
+        // Data 15 Siswa Calon Penerima (Patrick Jane, Teresa Lisbon, David Martinez, Lucy, Roman Carax, dst.)
         $siswaData = $isPeriodeUtama ? [
-            // 15 Siswa untuk Periode Aktif
-            ['nisn' => '0078123401', 'nama' => 'Rizky Pratama Saputra', 'jurusan' => 'Rekayasa Perangkat Lunak', 'kelas' => 'XII RPL 1', 'c1' => 96.50, 'c2' => 1500000, 'c3' => 4, 'c4' => 5, 'c5' => 0],
-            ['nisn' => '0078123402', 'nama' => 'Siti Aisyah Nuraini', 'jurusan' => 'Akuntansi & Keuangan Lembaga', 'kelas' => 'XII AKL 2', 'c1' => 95.00, 'c2' => 1800000, 'c3' => 5, 'c4' => 4, 'c5' => 0],
-            ['nisn' => '0078123403', 'nama' => 'Muhammad Budi Santoso', 'jurusan' => 'Teknik Komputer & Jaringan', 'kelas' => 'XII TKJ 1', 'c1' => 93.80, 'c2' => 2000000, 'c3' => 3, 'c4' => 5, 'c5' => 1],
-            ['nisn' => '0078123404', 'nama' => 'Dwi Lestari Handayani', 'jurusan' => 'Desain Komunikasi Visual', 'kelas' => 'XI DKV 1', 'c1' => 92.40, 'c2' => 2200000, 'c3' => 4, 'c4' => 4, 'c5' => 0],
-            ['nisn' => '0078123405', 'nama' => 'Fajar Nugroho Setiawan', 'jurusan' => 'Teknik Kendaraan Ringan', 'kelas' => 'XII TKR 2', 'c1' => 91.20, 'c2' => 2500000, 'c3' => 4, 'c4' => 3, 'c5' => 1],
-            ['nisn' => '0078123406', 'nama' => 'Anisa Rahmawati Putri', 'jurusan' => 'Rekayasa Perangkat Lunak', 'kelas' => 'XI RPL 2', 'c1' => 89.50, 'c2' => 3000000, 'c3' => 3, 'c4' => 4, 'c5' => 1],
-            ['nisn' => '0078123407', 'nama' => 'Bagus Hendra Wicaksono', 'jurusan' => 'Teknik Komputer & Jaringan', 'kelas' => 'XII TKJ 2', 'c1' => 88.00, 'c2' => 3500000, 'c3' => 3, 'c4' => 3, 'c5' => 2],
-            ['nisn' => '0078123408', 'nama' => 'Cindy Claudia Marwah', 'jurusan' => 'Akuntansi & Keuangan Lembaga', 'kelas' => 'XI AKL 1', 'c1' => 87.20, 'c2' => 3200000, 'c3' => 2, 'c4' => 5, 'c5' => 1],
-            ['nisn' => '0078123409', 'nama' => 'Dimas Arya Pamungkas', 'jurusan' => 'Teknik Kendaraan Ringan', 'kelas' => 'XII TKR 1', 'c1' => 86.00, 'c2' => 4000000, 'c3' => 3, 'c4' => 2, 'c5' => 2],
-            ['nisn' => '0078123410', 'nama' => 'Eka Wahyu Prasetya', 'jurusan' => 'Desain Komunikasi Visual', 'kelas' => 'XII DKV 2', 'c1' => 85.50, 'c2' => 4500000, 'c3' => 2, 'c4' => 4, 'c5' => 2],
-            ['nisn' => '0078123411', 'nama' => 'Fitriani Indah Permata', 'jurusan' => 'Rekayasa Perangkat Lunak', 'kelas' => 'X RPL 1', 'c1' => 84.00, 'c2' => 5000000, 'c3' => 2, 'c4' => 3, 'c5' => 3],
-            ['nisn' => '0078123412', 'nama' => 'Gilang Ramadhan Kusuma', 'jurusan' => 'Teknik Komputer & Jaringan', 'kelas' => 'XI TKJ 1', 'c1' => 82.50, 'c2' => 6000000, 'c3' => 2, 'c4' => 2, 'c5' => 3],
-            ['nisn' => '0078123413', 'nama' => 'Hesti Wulandari Astuti', 'jurusan' => 'Akuntansi & Keuangan Lembaga', 'kelas' => 'X AKL 2', 'c1' => 81.00, 'c2' => 7500000, 'c3' => 1, 'c4' => 3, 'c5' => 4],
-            ['nisn' => '0078123414', 'nama' => 'Ilham Maulana Akbar', 'jurusan' => 'Teknik Kendaraan Ringan', 'kelas' => 'X TKR 1', 'c1' => 79.50, 'c2' => 8500000, 'c3' => 2, 'c4' => 1, 'c5' => 4],
-            ['nisn' => '0078123415', 'nama' => 'Joko Susilo Purnomo', 'jurusan' => 'Desain Komunikasi Visual', 'kelas' => 'X DKV 1', 'c1' => 76.00, 'c2' => 11000000, 'c3' => 1, 'c4' => 1, 'c5' => 5],
+            ['nisn' => '0071234001', 'nama' => 'Patrick Jane', 'jurusan' => 'Rekayasa Perangkat Lunak', 'kelas' => 'XII RPL 1', 'c1' => 96.00, 'c2' => 1200000, 'c3' => 4, 'c4' => 1, 'c5' => 0],
+            ['nisn' => '0071234002', 'nama' => 'Teresa Lisbon', 'jurusan' => 'Teknik Komputer & Jaringan', 'kelas' => 'XII TKJ 1', 'c1' => 92.50, 'c2' => 1800000, 'c3' => 5, 'c4' => 2, 'c5' => 1],
+            ['nisn' => '0071234003', 'nama' => 'Kimball Cho', 'jurusan' => 'Rekayasa Perangkat Lunak', 'kelas' => 'XII RPL 2', 'c1' => 90.00, 'c2' => 2000000, 'c3' => 3, 'c4' => 1, 'c5' => 0],
+            ['nisn' => '0071234004', 'nama' => 'Grace Van Pelt', 'jurusan' => 'Desain Komunikasi Visual', 'kelas' => 'XII DKV 1', 'c1' => 87.50, 'c2' => 2400000, 'c3' => 4, 'c4' => 2, 'c5' => 1],
+            ['nisn' => '0071234005', 'nama' => 'Wayne Rigsby', 'jurusan' => 'Teknik Kendaraan Ringan', 'kelas' => 'XII TKR 1', 'c1' => 84.00, 'c2' => 2800000, 'c3' => 3, 'c4' => 3, 'c5' => 2],
+            ['nisn' => '0071234006', 'nama' => 'Farrel Ahnaf Putra Chaniago', 'jurusan' => 'Teknik Komputer & Jaringan', 'kelas' => 'XII TKJ 2', 'c1' => 81.50, 'c2' => 3200000, 'c3' => 4, 'c4' => 2, 'c5' => 1],
+            ['nisn' => '0071234007', 'nama' => 'Muhammad Ghibran Aditya', 'jurusan' => 'Akuntansi & Keuangan Lembaga', 'kelas' => 'XII AKL 1', 'c1' => 78.00, 'c2' => 4000000, 'c3' => 2, 'c4' => 4, 'c5' => 3],
+            ['nisn' => '0071234008', 'nama' => 'Red John', 'jurusan' => 'Manajemen Perkantoran', 'kelas' => 'XII MP 1', 'c1' => 71.50, 'c2' => 6000000, 'c3' => 1, 'c4' => 5, 'c5' => 5],
+            ['nisn' => '0071234009', 'nama' => 'David Martinez', 'jurusan' => 'Teknik Komputer & Jaringan', 'kelas' => 'XII TKJ 1', 'c1' => 93.00, 'c2' => 1400000, 'c3' => 2, 'c4' => 1, 'c5' => 1],
+            ['nisn' => '0071234010', 'nama' => 'Lucy', 'jurusan' => 'Rekayasa Perangkat Lunak', 'kelas' => 'XII RPL 1', 'c1' => 94.00, 'c2' => 1600000, 'c3' => 1, 'c4' => 1, 'c5' => 0],
+            ['nisn' => '0071234011', 'nama' => 'Roman Carax', 'jurusan' => 'Desain Komunikasi Visual', 'kelas' => 'XII DKV 2', 'c1' => 86.50, 'c2' => 2100000, 'c3' => 3, 'c4' => 2, 'c5' => 1],
+            ['nisn' => '0071234012', 'nama' => 'Yang Talia', 'jurusan' => 'Akuntansi & Keuangan Lembaga', 'kelas' => 'XII AKL 2', 'c1' => 85.00, 'c2' => 1900000, 'c3' => 4, 'c4' => 3, 'c5' => 0],
+            ['nisn' => '0071234013', 'nama' => 'Weak Kingsley', 'jurusan' => 'Manajemen Perkantoran', 'kelas' => 'XII MP 2', 'c1' => 80.00, 'c2' => 3500000, 'c3' => 3, 'c4' => 3, 'c5' => 2],
+            ['nisn' => '0071234014', 'nama' => 'Omi', 'jurusan' => 'Teknik Kendaraan Ringan', 'kelas' => 'XII TKR 2', 'c1' => 77.00, 'c2' => 2900000, 'c3' => 2, 'c4' => 4, 'c5' => 2],
+            ['nisn' => '0071234015', 'nama' => 'D', 'jurusan' => 'Desain Komunikasi Visual', 'kelas' => 'XII DKV 1', 'c1' => 74.00, 'c2' => 4800000, 'c3' => 1, 'c4' => 4, 'c5' => 4],
         ] : [
             // 10 Siswa untuk Periode Historis
             ['nisn' => '0068112201', 'nama' => 'Aditya Yoga Pratama', 'jurusan' => 'Rekayasa Perangkat Lunak', 'kelas' => 'XII RPL 1', 'c1' => 97.00, 'c2' => 1400000, 'c3' => 4, 'c4' => 5, 'c5' => 0],
@@ -283,12 +255,10 @@ class SpkDemoSeeder extends Seeder
                 'nilai' => $s['c2'],
             ]);
 
-            // C3: Tanggungan Orang Tua (1..5)
-            $subC3 = $subC3Map[$s['c3']] ?? null;
+            // C3: Tanggungan Anak (Angka)
             Penilaian::create([
                 'calon_penerima_id' => $calon->id,
                 'kriteria_id' => $kModels['C3']->id,
-                'sub_kriteria_id' => $subC3?->id,
                 'nilai' => $s['c3'],
             ]);
 

@@ -262,9 +262,11 @@
             <section class="dashboard-card dashboard-card--main">
 
                 @php
-                    $startTermepet = max(6, $kuota - 5);
-                    $hasGap = ($kuota > 10 && $totalLolos >= $startTermepet);
-                    $labelTopBatasCount = $hasGap ? 10 : min($totalLolos, 10);
+                    $startTermepet = max(6, $kuota - 4);
+                    $hiddenCount = max(0, $startTermepet - 6);
+                    // Tampilkan 5 teratas dan 5 terbawah kuota jika kuota > 10
+                    $hasGap = ($hiddenCount > 0 && $totalLolos >= $startTermepet);
+                    $labelTopBatasCount = $hasGap ? 10 : min($totalLolos, $kuota);
                 @endphp
 
                 <div class="dashboard-card__header">
@@ -331,7 +333,7 @@
                                 $isTermepet = ($rank >= $startTermepet && $rank <= $kuota);
                                 $isFokus = ($hasGap) ? ($isTop5 || $isTermepet) : ($rank <= $kuota);
 
-                                // Hanya tampilkan 5 teratas dan 5 termepet kuota
+                                // Tampilkan 5 teratas dan 5 termepet kuota
                                 if (! $isFokus) {
                                     continue;
                                 }
@@ -404,7 +406,11 @@
                                     <div class="ranking-divider__content">
                                         <span class="ranking-divider__dots">● ● ●</span>
                                         <span class="ranking-divider__text">
-                                            {{ $startTermepet - 6 }} siswa peringkat 6–{{ $startTermepet - 1 }} di dalam kuota tidak ditampilkan
+                                            @if ($startTermepet - 1 > 6)
+                                                {{ $hiddenCount }} siswa peringkat 6–{{ $startTermepet - 1 }} di dalam kuota tidak ditampilkan
+                                            @else
+                                                1 siswa peringkat 6 di dalam kuota tidak ditampilkan
+                                            @endif
                                         </span>
                                     </div>
                                     <div class="ranking-divider__bar"></div>

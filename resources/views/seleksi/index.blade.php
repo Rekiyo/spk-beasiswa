@@ -35,7 +35,7 @@
                 @if (!$periode->isTerkunci())
                     <button type="button" class="btn btn-primary" onclick="resetFormCalon(); scrollToForm();">
                         <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        + Tambah Siswa Baru
+                        Tambah Siswa Baru
                     </button>
                     <button type="button" class="btn btn-outline" onclick="openImportModal()">
                         <svg class="icon-sm text-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -242,7 +242,7 @@
                                                     <option value="2">Paket 2: Komputer dan Paskibra (Nilai SAW: 2)</option>
                                                     <option value="3">Paket 3: Pramuka dan Paskibra (Nilai SAW: 3)</option>
                                                     <option value="4" selected>Paket 4: Olahraga (Nilai SAW: 4)</option>
-                                                    <option value="5">Paket 5: Palang Merah / PMR &amp; Organisasi (Nilai SAW: 5)</option>
+                                                    <option value="5">Paket 5: Pakata (Nilai SAW: 5)</option>
                                                 @else
                                                     <option value="1">Opsi 1 (Nilai SAW: 1)</option>
                                                     <option value="2">Opsi 2 (Nilai SAW: 2)</option>
@@ -260,6 +260,11 @@
                                                 <div class="input-suffix-wrapper">
                                                     <input type="number" step="0.01" min="{{ $k->min_val ?? 0 }}" max="{{ $k->max_val ?? 100 }}" name="nilai[{{ $k->id }}]" id="nilai_{{ $kode }}" class="form-input font-bold" placeholder="Contoh: 85.00" value="85.00" style="width:100%;" required>
                                                     <span class="input-suffix">{{ $k->satuan ?: '/ 100' }}</span>
+                                                </div>
+                                            @elseif ($kode === 'C3')
+                                                <div class="input-suffix-wrapper">
+                                                    <input type="number" min="{{ $k->min_val ?? 1 }}" max="{{ $k->max_val ?? 20 }}" name="nilai[{{ $k->id }}]" id="nilai_{{ $kode }}" class="form-input font-bold" placeholder="Contoh: 4" value="3" style="width:100%;" required>
+                                                    <span class="input-suffix">{{ $k->satuan ?: 'Orang' }}</span>
                                                 </div>
                                             @elseif ($kode === 'C5')
                                                 <div class="input-suffix-wrapper">
@@ -355,11 +360,43 @@
             </span>
         </div>
 
+        {{-- Bulk Action Bar (Hapus Beberapa Siswa Sekaligus) --}}
+        <div id="bulkActionBar" style="display:none; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:10px 16px; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:24px; padding:0 6px; border-radius:12px; background:#ef4444; color:#fff; font-size:11px; font-weight:800;" id="selectedCalonBadge">0</span>
+                <div>
+                    <span style="font-size:13px; font-weight:700; color:#9f1239;">
+                        <span id="selectedCalonCount">0</span> Siswa Terpilih
+                    </span>
+                    <span style="font-size:11.5px; color:#be123c; margin-left:4px;">(dari halaman ini)</span>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" onclick="clearSelectedCalon()" class="btn btn-outline btn-sm" style="background:#fff; font-size:11.5px; padding:6px 12px; border-color:#fda4af; color:#9f1239;">
+                    Batal Pilih
+                </button>
+                <button type="button" onclick="confirmBulkDelete()" class="btn btn-sm" style="background:#e11d48; color:#fff; border:none; font-size:12px; font-weight:700; padding:6px 16px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 1px 2px rgba(225,29,72,0.2);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Hapus Siswa Terpilih
+                </button>
+            </div>
+        </div>
+
+        {{-- Hidden Form Bulk Delete --}}
+        <form id="bulkDeleteForm" action="{{ route('periode.seleksi.bulk-destroy', $periode) }}" method="POST" style="display:none;">
+            @csrf
+            @method('DELETE')
+            <div id="bulkDeleteInputsContainer"></div>
+        </form>
+
         {{-- Tabel Perangkingan Siswa --}}
         <div class="table-container">
             <table class="saw-table">
                 <thead>
                     <tr>
+                        <th style="width:40px; text-align:center;">
+                            <input type="checkbox" id="selectAllCalon" title="Pilih Semua Siswa di Halaman Ini" style="cursor:pointer; width:15px; height:15px; accent-color:#e11d48;">
+                        </th>
                         <th style="width:65px; text-align:center;">RANK</th>
                         <th style="width:260px;">SISWA &amp; JURUSAN SMK</th>
                         <th style="width:350px;">NILAI ASLI KRITERIA (C1 - C5)</th>
@@ -376,6 +413,11 @@
                             $penilaiansMap = $c->penilaians->keyBy('kriteria_id');
                         @endphp
                         <tr>
+                            {{-- CHECKBOX PILIH --}}
+                            <td style="text-align:center;">
+                                <input type="checkbox" class="calon-checkbox" value="{{ $c->id }}" data-nama="{{ $c->nama }}" style="cursor:pointer; width:15px; height:15px; accent-color:#e11d48;" onchange="updateBulkActionState()">
+                            </td>
+
                             {{-- RANK BADGE --}}
                             <td style="text-align:center;">
                                 <span class="rank-badge {{ $rank === 1 ? 'rank-1' : ($rank === 2 ? 'rank-2' : ($rank === 3 ? 'rank-3' : ($rank <= $periode->kuota ? 'rank-top' : 'rank-normal'))) }}">
@@ -468,7 +510,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="text-align:center; padding:44px 20px; color:#6b7280;">
+                            <td colspan="7" style="text-align:center; padding:44px 20px; color:#6b7280;">
                                 <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
                                     <strong style="color:#374151; font-size:13px;">Belum Ada Data Calon Siswa</strong>
@@ -737,6 +779,79 @@ document.addEventListener('DOMContentLoaded', function () {
     window.closeImportModal = function() {
         const modal = document.getElementById('modalImport');
         if (modal) modal.classList.remove('active');
+    };
+
+    // Bulk Select & Delete Siswa
+    const selectAllCalon = document.getElementById('selectAllCalon');
+    const bulkActionBar = document.getElementById('bulkActionBar');
+    const selectedCalonCount = document.getElementById('selectedCalonCount');
+    const selectedCalonBadge = document.getElementById('selectedCalonBadge');
+
+    window.updateBulkActionState = function() {
+        const checkboxes = document.querySelectorAll('.calon-checkbox');
+        const checked = document.querySelectorAll('.calon-checkbox:checked');
+        const count = checked.length;
+
+        if (selectedCalonCount) selectedCalonCount.innerText = count;
+        if (selectedCalonBadge) selectedCalonBadge.innerText = count;
+
+        if (bulkActionBar) {
+            bulkActionBar.style.display = count > 0 ? 'flex' : 'none';
+        }
+
+        if (selectAllCalon) {
+            selectAllCalon.checked = checkboxes.length > 0 && count === checkboxes.length;
+            selectAllCalon.indeterminate = count > 0 && count < checkboxes.length;
+        }
+    };
+
+    if (selectAllCalon) {
+        selectAllCalon.addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('.calon-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+            updateBulkActionState();
+        });
+    }
+
+    window.clearSelectedCalon = function() {
+        document.querySelectorAll('.calon-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        if (selectAllCalon) {
+            selectAllCalon.checked = false;
+            selectAllCalon.indeterminate = false;
+        }
+        updateBulkActionState();
+    };
+
+    window.confirmBulkDelete = function() {
+        const checked = document.querySelectorAll('.calon-checkbox:checked');
+        const count = checked.length;
+        if (count === 0) {
+            alert('Silakan pilih minimal 1 siswa yang ingin dihapus.');
+            return;
+        }
+
+        window.openConfirmModal({
+            title: `Hapus ${count} Siswa Terpilih?`,
+            message: `Apakah Anda yakin ingin menghapus ${count} data siswa yang dipilih? Nilai penilaian dan perangkingan SAW akan diperbarui otomatis. Tindakan ini tidak dapat dibatalkan.`,
+            confirmText: `Ya, Hapus ${count} Siswa`,
+            onConfirm: () => {
+                const container = document.getElementById('bulkDeleteInputsContainer');
+                if (!container) return;
+                container.innerHTML = '';
+                checked.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = cb.value;
+                    container.appendChild(input);
+                });
+                document.getElementById('bulkDeleteForm').submit();
+            }
+        });
     };
 });
 </script>
